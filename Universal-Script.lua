@@ -105,7 +105,7 @@ local function initializeRemotesTreeCutting()
 end
 
 local function initializeRemotes()
-    if currentPlaceId == 10478585520440 then -- Tree Cutting
+    if currentPlaceId == 104785855204405 then -- Tree Cutting
         initializeRemotesTreeCutting()
     elseif currentPlaceId == 129827112113663 then -- Prospecting
         initializeRemotesProspecting()
