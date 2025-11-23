@@ -486,11 +486,11 @@ headerCover.BorderSizePixel = 0
 headerCover.Parent = header
 
 local logoIcon = Instance.new("ImageLabel")
-logoIcon.Size = UDim2.new(0, 32, 0, 32)
+logoIcon.Size = UDim2.new(0, 30, 0, 30)
 logoIcon.Position = UDim2.new(0, 12, 0.5, -15)
-logoIcon.BackgroundTransparency = 1 -- biar background ga muncul
+logoIcon.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
 logoIcon.BorderSizePixel = 0
-logoIcon.Image = "rbxassetid://117214352844838" -- ganti ke asset ID logo Archeron
+logoIcon.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
 logoIcon.Parent = header
 
 local logoCorner = Instance.new("UICorner")
