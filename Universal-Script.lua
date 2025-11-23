@@ -490,7 +490,7 @@ logoIcon.Size = UDim2.new(0, 30, 0, 30)
 logoIcon.Position = UDim2.new(0, 12, 0.5, -15)
 logoIcon.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
 logoIcon.BorderSizePixel = 0
-logoIcon.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
+logoIcon.Image = "rbxassetid://117214352844838"
 logoIcon.Parent = header
 
 local logoCorner = Instance.new("UICorner")
