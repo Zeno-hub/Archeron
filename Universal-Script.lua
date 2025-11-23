@@ -1,5 +1,12 @@
-local player = game.Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
+-- Wait for game to fully load
+if not game:IsLoaded() then
+    game.Loaded:Wait()
+end
+
+wait(1) -- Extra safety delay
+
+local player = game:GetService("Players").LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui", 10)
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
@@ -43,20 +50,37 @@ local gameConfig = WHITELISTED_GAMES[currentPlaceId]
 
 if not gameConfig then
     warn("❌ Game ini tidak tersedia di Archeron Hub!")
+    warn("PlaceId saat ini:", currentPlaceId)
     wait(2)
-    player:Kick("Game tidak terdaftar dalam whitelist Archeron Hub")
+    player:Kick("Game tidak terdaftar dalam whitelist Archeron Hub\nPlaceId: " .. tostring(currentPlaceId))
     return
 end
 
 print("✅ Game terdeteksi: " .. gameConfig.name)
+print("📍 PlaceId:", currentPlaceId)
 
--- Hapus GUI lama
-if playerGui:FindFirstChild("ArcheronHub") then
-    playerGui.ArcheronHub:Destroy()
-end
+-- Hapus GUI lama (dengan error handling)
+pcall(function()
+    if playerGui:FindFirstChild("ArcheronHub") then
+        playerGui.ArcheronHub:Destroy()
+        wait(0.5)
+    end
+end)
 
 -- RemoteEvent / RemoteFunction table (DINAMIS SESUAI GAME)
 local Remotes = {}
+
+-- Toggle states (DINAMIS) - PINDAH KE ATAS BIAR GA ERROR
+local toggles = {
+    AutoChop = false,
+    AutoDig = false,
+    AutoPan = false,
+    AutoShake = false,
+    Fly = false,
+    Noclip = false
+}
+
+local walkSpeedValue = 16
 
 local function initializeRemotesProspecting()
     pcall(function()
@@ -92,14 +116,26 @@ end
 
 local function initializeRemotesTreeCutting()
     pcall(function()
-        -- Cari CutEvent di ReplicatedStorage atau tempat lain
-        local cutEvent = game.ReplicatedStorage:FindFirstChild("CutEvent")
+        -- Cari CutEvent di berbagai lokasi
+        local cutEvent = game.ReplicatedStorage:FindFirstChild("CutEvent") 
+                      or game.ReplicatedStorage:FindFirstChild("Cut")
+                      or game.ReplicatedStorage:FindFirstChild("TreeEvent")
+        
         if cutEvent then
             Remotes.AutoChop = {
                 Instance = cutEvent,
                 Type = "Event",
-                Args = {} -- Will be set dynamically saat toggle
+                Args = {}
             }
+            print("✅ CutEvent ditemukan:", cutEvent:GetFullName())
+        else
+            warn("❌ CutEvent tidak ditemukan! Cek ReplicatedStorage")
+            -- Debug: print semua RemoteEvents
+            for _, v in pairs(game.ReplicatedStorage:GetDescendants()) do
+                if v:IsA("RemoteEvent") or v:IsA("RemoteFunction") then
+                    print("🔍 Remote ditemukan:", v.Name, v:GetFullName())
+                end
+            end
         end
     end)
 end
@@ -113,33 +149,28 @@ local function initializeRemotes()
 end
 
 initializeRemotes()
+print("🔧 Remotes initialized. Checking...")
+print("📋 Current Remotes:", HttpService:JSONEncode(Remotes))
+print("🎮 Toggle states:", HttpService:JSONEncode(toggles))
 
 player.CharacterAdded:Connect(function()
     wait(1)
     initializeRemotes()
 end)
 
--- Toggle states (DINAMIS)
-local toggles = {
-    AutoChop = false,
-    AutoDig = false,
-    AutoPan = false,
-    AutoShake = false,
-    Fly = false,
-    Noclip = false
-}
-
-local walkSpeedValue = 16
-
 -- Auto loop untuk remotes
 spawn(function()
+    print("🔄 Auto loop started!")
     while true do
         for name, isActive in pairs(toggles) do
-            if isActive and Remotes[name] then
-                pcall(function()
-                    local remote = Remotes[name]
-                    
-                    if name == "AutoChop" then
+            if isActive then
+                print("⚡ Toggle aktif:", name, "| Remote exists:", Remotes[name] ~= nil)
+                
+                if Remotes[name] then
+                    pcall(function()
+                        local remote = Remotes[name]
+                        
+                        if name == "AutoChop" then
     print("🪓 AutoChop dijalankan...")
     -- Auto Chop FIX dengan multiple fallback methods
     local treeFolder = workspace:FindFirstChild("Trees") 
@@ -192,11 +223,20 @@ spawn(function()
         end
     end
                         -- Standard remote calling (dibawah method AutoChop)
-                    elseif remote.Type == "Function" then
-                        remote.Instance:InvokeServer(unpack(remote.Args))
-                    elseif remote.Type == "Event" then
-                        remote.Instance:FireServer(unpack(remote.Args))
-                    end
+                        elseif remote.Type == "Function" then
+                            remote.Instance:InvokeServer(unpack(remote.Args))
+                        elseif remote.Type == "Event" then
+                            remote.Instance:FireServer(unpack(remote.Args))
+                        end
+                    end)
+                else
+                    print("❌ Remote tidak ditemukan untuk:", name)
+                end
+            end
+        end
+        wait(0.1)
+    end
+end)
 
 -- Fly functionality
 local flying = false
@@ -530,10 +570,10 @@ local logoCorner = Instance.new("UICorner")
 logoCorner.CornerRadius = UDim.new(0, 8)
 logoCorner.Parent = logoIcon
 
--- Glow Layer 1 (dalam) - POSISI DIPERBAIKI!
+-- Glow Layer 1 (dalam)
 local glow1 = Instance.new("Frame")
 glow1.Size = UDim2.new(0, 36, 0, 36)
-glow1.Position = UDim2.new(0, 9, 0, 7)  -- ← FIXED: Ganti dari (0, 9, 0.5, -18) jadi (0, 9, 0, 7)
+glow1.Position = UDim2.new(0, 9, 0, 7)
 glow1.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
 glow1.BackgroundTransparency = 0.5
 glow1.BorderSizePixel = 0
@@ -544,10 +584,10 @@ local glow1Corner = Instance.new("UICorner")
 glow1Corner.CornerRadius = UDim.new(0, 9)
 glow1Corner.Parent = glow1
 
--- Glow Layer 2 (luar) - POSISI DIPERBAIKI!
+-- Glow Layer 2 (luar)
 local glow2 = Instance.new("Frame")
 glow2.Size = UDim2.new(0, 42, 0, 42)
-glow2.Position = UDim2.new(0, 6, 0, 4)  -- ← FIXED: Ganti dari (0, 6, 0.5, -21) jadi (0, 6, 0, 4)
+glow2.Position = UDim2.new(0, 6, 0, 4)
 glow2.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
 glow2.BackgroundTransparency = 0.8
 glow2.BorderSizePixel = 0
@@ -558,28 +598,26 @@ local glow2Corner = Instance.new("UICorner")
 glow2Corner.CornerRadius = UDim.new(0, 11)
 glow2Corner.Parent = glow2
 
--- Pulsing animation - POSISI DIPERBAIKI!
+-- Pulsing animation
 spawn(function()
     while glow1 and glow1.Parent do
-        -- Pulse in
         TweenService:Create(glow1, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
             BackgroundTransparency = 0.3
         }):Play()
         TweenService:Create(glow2, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
             BackgroundTransparency = 0.6,
             Size = UDim2.new(0, 46, 0, 46),
-            Position = UDim2.new(0, 4, 0, 2)  -- ← FIXED
+            Position = UDim2.new(0, 4, 0, 2)
         }):Play()
         wait(1.5)
         
-        -- Pulse out
         TweenService:Create(glow1, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
             BackgroundTransparency = 0.5
         }):Play()
         TweenService:Create(glow2, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
             BackgroundTransparency = 0.85,
             Size = UDim2.new(0, 42, 0, 42),
-            Position = UDim2.new(0, 6, 0, 4)  -- ← FIXED
+            Position = UDim2.new(0, 6, 0, 4)
         }):Play()
         wait(1.5)
     end
@@ -765,7 +803,6 @@ local function createFeatureButton(featureName, featureDesc, toggleKey, hasWarni
     featureDescLabel.TextXAlignment = Enum.TextXAlignment.Left
     featureDescLabel.Parent = featureBtn
     
-    -- Note/Warning text jika ada
     if noteText then
         local noteLabel = Instance.new("TextLabel")
         noteLabel.Size = UDim2.new(1, -30, 0, 45)
@@ -967,7 +1004,6 @@ local function createWalkSpeedSlider()
     end)
 end
 
--- Create dynamic menu berdasarkan gameConfig
 local function showContentByCategory(categoryName)
     clearContent()
     
@@ -980,7 +1016,6 @@ local function showContentByCategory(categoryName)
                 createFeatureButton(feature.name, feature.desc, feature.key, feature.warning, feature.note)
             end
             
-            -- Tambah slider WalkSpeed di menu Player
             if categoryName == "Player" then
                 createWalkSpeedSlider()
             end
@@ -988,7 +1023,6 @@ local function showContentByCategory(categoryName)
     end
 end
 
--- Buat sidebar buttons DINAMIS
 local currentSelectedButton = nil
 local function createSidebarButton(icon, text, categoryName, order)
     local btn = Instance.new("TextButton")
@@ -1051,7 +1085,6 @@ local function createSidebarButton(icon, text, categoryName, order)
     end)
 end
 
--- Buat menu dinamis dari gameConfig
 local menuOrder = 1
 createSidebarButton("ℹ", "Information", "Information", menuOrder)
 menuOrder = menuOrder + 1
@@ -1066,10 +1099,8 @@ if gameConfig.features.Player then
     menuOrder = menuOrder + 1
 end
 
--- Tampilkan default content
 showContentByCategory("Information")
 
--- Drag untuk toggle button
 local draggingToggle = false
 local dragStartToggle = Vector2.new(0, 0)
 local startPosToggle = UDim2.new(0, 0, 0, 0)
@@ -1102,7 +1133,6 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- Drag untuk main frame
 local dragging = false
 local dragStart = Vector2.new(0, 0)
 local startPos = UDim2.new(0, 0, 0, 0)
@@ -1135,7 +1165,6 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- Toggle GUI
 local function toggleGUI()
     mainFrame.Visible = not mainFrame.Visible
     if mainFrame.Visible then
@@ -1166,7 +1195,6 @@ toggleFrame.InputEnded:Connect(function(input)
     end
 end)
 
--- Close button
 closeBtn.MouseButton1Click:Connect(function()
     TweenService:Create(mainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
         Size = UDim2.new(0, 0, 0, 0)
@@ -1175,28 +1203,24 @@ closeBtn.MouseButton1Click:Connect(function()
     mainFrame.Visible = false
 end)
 
--- Minimize button
 minimizeBtn.MouseButton1Click:Connect(function()
     TweenService:Create(mainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
         Size = UDim2.new(0, 550, 0, 50)
     }):Play()
 end)
 
--- Maximize button
 maximizeBtn.MouseButton1Click:Connect(function()
     TweenService:Create(mainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
         Size = UDim2.new(0, 550, 0, 380)
     }):Play()
 end)
 
--- Keybind R
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if not gameProcessed and input.KeyCode == Enum.KeyCode.R then
         toggleGUI()
     end
 end)
 
--- Hover effects
 toggleFrame.MouseEnter:Connect(function()
     TweenService:Create(toggleFrame, TweenInfo.new(0.2), {
         BackgroundTransparency = 0
