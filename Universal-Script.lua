@@ -486,7 +486,7 @@ headerCover.BorderSizePixel = 0
 headerCover.Parent = header
 
 local logoIcon = Instance.new("ImageLabel")
-logoIcon.Size = UDim2.new(0, 30, 0, 30)
+logoIcon.Size = UDim2.new(0, 32, 0, 32)
 logoIcon.Position = UDim2.new(0, 12, 0.5, -15)
 logoIcon.BackgroundTransparency = 1 -- biar background ga muncul
 logoIcon.BorderSizePixel = 0
