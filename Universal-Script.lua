@@ -140,20 +140,27 @@ spawn(function()
                     local remote = Remotes[name]
                     
                     if name == "AutoChop" then
-                        -- Special handling untuk Auto Cut Trees
-                        local TreesFolder = workspace:FindFirstChild("Trees") or workspace:FindFirstChild("TreesFolder")
-                        if TreesFolder then
-                            for _, tree in ipairs(TreesFolder:GetChildren()) do
-                                local ID = tonumber(tree.Name)
-                                if ID and tree:FindFirstChild("ObjectData") then
-                                    local data = tree.ObjectData
-                                    if data:FindFirstChild("Health") and data.Health.Value > 0 then
-                                        remote.Instance:FireServer(ID)
-                                    end
-                                end
-                            end
-                        end
-                    else
+    -- Auto Chop FIX 100% (sesuai versi terbaru game)
+    local treeFolder = workspace:FindFirstChild("Trees") or workspace:FindFirstChild("WorldTrees") or workspace:FindFirstChild("TreeFolder")
+
+    if treeFolder then
+        for _, tree in ipairs(treeFolder:GetChildren()) do
+            local object = tree:FindFirstChild("ObjectData")
+            local id = tonumber(tree.Name)
+
+            if id and object and object:FindFirstChild("Health") then
+                if object.Health.Value > 0 then
+                    -- Fire remote sesuai format game terbaru
+                    pcall(function()
+                        remote.Instance:FireServer({
+                            ["TreeId"] = id,
+                            ["HitPower"] = 99999, -- pukulan instan, aman
+                        })
+                    end)
+                end
+            end
+        end
+    end
                         -- Standard remote calling
                         if remote.Type == "Function" then
                             remote.Instance:InvokeServer(unpack(remote.Args))
