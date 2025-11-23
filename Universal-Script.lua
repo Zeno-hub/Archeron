@@ -493,23 +493,47 @@ logoIcon.BorderSizePixel = 0
 logoIcon.Image = "rbxassetid://139400776308881"
 logoIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
 logoIcon.ScaleType = Enum.ScaleType.Fit
+logoIcon.ZIndex = 1
 logoIcon.Parent = header
-
--- Glow effect (bayang cahaya ungu)
-local logoGlow = Instance.new("ImageLabel")
-logoGlow.Size = UDim2.new(1.3, 0, 1.3, 0)  -- 30% lebih besar
-logoGlow.Position = UDim2.new(-0.15, 0, -0.15, 0)  -- Centered
-logoGlow.BackgroundTransparency = 1
-logoGlow.Image = "rbxassetid://139400776308881"
-logoGlow.ImageColor3 = Color3.fromRGB(138, 43, 226)  -- Warna ungu
-logoGlow.ImageTransparency = 0.7  -- Semi transparan
-logoGlow.ZIndex = -1  -- Di belakang logo asli
-logoGlow.ScaleType = Enum.ScaleType.Fit
-logoGlow.Parent = logoIcon
 
 local logoCorner = Instance.new("UICorner")
 logoCorner.CornerRadius = UDim.new(0, 8)
 logoCorner.Parent = logoIcon
+
+-- Glow frame
+local glowFrame = Instance.new("Frame")
+glowFrame.Size = UDim2.new(0, 38, 0, 38)
+glowFrame.Position = UDim2.new(0, 8, 0.5, -19)
+glowFrame.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+glowFrame.BackgroundTransparency = 0.6
+glowFrame.BorderSizePixel = 0
+glowFrame.ZIndex = 0
+glowFrame.Parent = header
+
+local glowCorner = Instance.new("UICorner")
+glowCorner.CornerRadius = UDim.new(0, 10)
+glowCorner.Parent = glowFrame
+
+-- Pulsing animation
+spawn(function()
+    while glowFrame and glowFrame.Parent do
+        -- Glow terang
+        TweenService:Create(glowFrame, TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+            BackgroundTransparency = 0.3,
+            Size = UDim2.new(0, 42, 0, 42),
+            Position = UDim2.new(0, 6, 0.5, -21)
+        }):Play()
+        wait(1)
+        
+        -- Glow redup
+        TweenService:Create(glowFrame, TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+            BackgroundTransparency = 0.7,
+            Size = UDim2.new(0, 38, 0, 38),
+            Position = UDim2.new(0, 8, 0.5, -19)
+        }):Play()
+        wait(1)
+    end
+end)
 
 local titleLabel = Instance.new("TextLabel")
 titleLabel.Size = UDim2.new(0, 180, 0, 22)
