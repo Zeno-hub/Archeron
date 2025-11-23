@@ -7,7 +7,7 @@ local HttpService = game:GetService("HttpService")
 
 -- WHITELIST GAME (Tambah PlaceId di sini)
 local WHITELISTED_GAMES = {
-    [10478585520440] = {
+    [104785855204405] = {
         name = "Tree Cutting Incremental",
         features = {
             Main = {
