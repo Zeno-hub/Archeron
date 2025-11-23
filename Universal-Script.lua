@@ -488,10 +488,24 @@ headerCover.Parent = header
 local logoIcon = Instance.new("ImageLabel")
 logoIcon.Size = UDim2.new(0, 30, 0, 30)
 logoIcon.Position = UDim2.new(0, 12, 0.5, -15)
-logoIcon.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+logoIcon.BackgroundTransparency = 1
 logoIcon.BorderSizePixel = 0
-logoIcon.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
+logoIcon.Image = "rbxassetid://139400776308881"
+logoIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
+logoIcon.ScaleType = Enum.ScaleType.Fit
 logoIcon.Parent = header
+
+-- Glow effect (bayang cahaya ungu)
+local logoGlow = Instance.new("ImageLabel")
+logoGlow.Size = UDim2.new(1.3, 0, 1.3, 0)  -- 30% lebih besar
+logoGlow.Position = UDim2.new(-0.15, 0, -0.15, 0)  -- Centered
+logoGlow.BackgroundTransparency = 1
+logoGlow.Image = "rbxassetid://139400776308881"
+logoGlow.ImageColor3 = Color3.fromRGB(138, 43, 226)  -- Warna ungu
+logoGlow.ImageTransparency = 0.7  -- Semi transparan
+logoGlow.ZIndex = -1  -- Di belakang logo asli
+logoGlow.ScaleType = Enum.ScaleType.Fit
+logoGlow.Parent = logoIcon
 
 local logoCorner = Instance.new("UICorner")
 logoCorner.CornerRadius = UDim.new(0, 8)
