@@ -116,29 +116,32 @@ end
 
 local function initializeRemotesTreeCutting()
     pcall(function()
-        -- Cari CutEvent di berbagai lokasi
-        local cutEvent = game.ReplicatedStorage:FindFirstChild("CutEvent") 
-                      or game.ReplicatedStorage:FindFirstChild("Cut")
-                      or game.ReplicatedStorage:FindFirstChild("TreeEvent")
+        print("🔍 DEBUG: Mencari CutTree event...")
         
-        if cutEvent then
-            Remotes.AutoChop = {
-                Instance = cutEvent,
-                Type = "Event",
-                Args = {}
-            }
-            print("✅ CutEvent ditemukan:", cutEvent:GetFullName())
-        else
-            warn("❌ CutEvent tidak ditemukan! Cek ReplicatedStorage")
-            -- Debug: print semua RemoteEvents
-            for _, v in pairs(game.ReplicatedStorage:GetDescendants()) do
-                if v:IsA("RemoteEvent") or v:IsA("RemoteFunction") then
-                    print("🔍 Remote ditemukan:", v.Name, v:GetFullName())
+        local eventsFolder = game.ReplicatedStorage:FindFirstChild("Events")
+        if eventsFolder then
+            print("✅ Events folder ketemu!")
+            
+            local cutTreeEvent = eventsFolder:FindFirstChild("CutTree")
+            if cutTreeEvent then
+                print("✅ CutTree event KETEMU:", cutTreeEvent:GetFullName())
+                Remotes.AutoChop = {
+                    Instance = cutTreeEvent,
+                    Type = "Event",
+                    Args = {}
+                }
+            else
+                warn("❌ CutTree TIDAK ADA di Events!")
+                -- Print semua isi Events folder
+                print("📋 Isi Events folder:")
+                for _, v in pairs(eventsFolder:GetChildren()) do
+                    print("  - " .. v.Name .. " (" .. v.ClassName .. ")")
                 end
             end
+        else
+            warn("❌ Events folder TIDAK KETEMU!")
         end
     end)
-end
 
 local function initializeRemotes()
     if currentPlaceId == 104785855204405 then -- Tree Cutting
