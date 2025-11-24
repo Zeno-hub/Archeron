@@ -122,12 +122,12 @@ local function initializeRemotesTreeCutting()
         if eventsFolder then
             print("✅ Events folder ketemu!")
             
-            local cutTreeEvent = eventsFolder:FindFirstChild("CutTree")
-            if cutTreeEvent then
-                print("✅ CutTree event KETEMU:", cutTreeEvent:GetFullName())
+            local cutTreeEvents = eventsFolder:FindFirstChild("CutTree")
+            if cutTreeEvents then
+                print("✅ CutTree Events KETEMU:", cutTreeEvents:GetFullName())
                 Remotes.AutoChop = {
-                    Instance = CutTreeEvent,
-                    Type = "Event",
+                    Instance = CutTreeEvents,
+                    Type = "Events",
                     Args = {}
                 }
             else
