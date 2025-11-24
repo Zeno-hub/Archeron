@@ -226,13 +226,6 @@ spawn(function()
     end
 end)
                 
-                 print("❌ Remote tidak ditemukan untuk:", name)
-                end
-            end
-        end
-        wait(0.1)
-    end
-end)
 
 -- Fly functionality
 local flying = false
