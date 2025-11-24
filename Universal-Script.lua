@@ -171,8 +171,6 @@ spawn(function()
         -- ===== TREE CUTTING - AUTO CHOP =====
         if toggles.AutoChop then
             pcall(function()
-           if toggles.AutoChop then
-            pcall(function()
                 -- Langsung ambil event setiap loop (lebih reliable)
                 local repStorage = game:GetService("ReplicatedStorage")
                 local eventsFolder = repStorage:FindFirstChild("Events")
