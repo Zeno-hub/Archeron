@@ -126,7 +126,7 @@ local function initializeRemotesTreeCutting()
             if cutTreeEvent then
                 print("✅ CutTree event KETEMU:", cutTreeEvent:GetFullName())
                 Remotes.AutoChop = {
-                    Instance = cutTreeEvent,
+                    Instance = CutTreeEvent,
                     Type = "Event",
                     Args = {}
                 }
@@ -171,57 +171,25 @@ spawn(function()
         -- ===== TREE CUTTING - AUTO CHOP =====
         if toggles.AutoChop then
             pcall(function()
-                -- Langsung ambil event setiap loop (lebih reliable)
-                local repStorage = game:GetService("ReplicatedStorage")
-                local eventsFolder = repStorage:FindFirstChild("Events")
-                
-                if not eventsFolder then
-                    warn("❌ Events folder not found!")
-                    return
-                end
-                
-                local cutTreeEvent = eventsFolder:FindFirstChild("CutTree")
-                if not cutTreeEvent then
-                    warn("❌ CutTree event not found!")
-                    return
-                end
-                
+                local cutTreeEvent = game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("CutTree")
                 local treeFolder = workspace:FindFirstChild("Objects")
-                if not treeFolder then
-                    warn("❌ Objects folder not found!")
-                    return
-                end
                 
-                print("🟢 Auto Chop Running...") -- Debug
+                if not treeFolder then return end
                 
+                -- Tebang SEMUA pohon sekaligus
                 for _, tree in ipairs(treeFolder:GetChildren()) do
                     if not toggles.AutoChop then break end
                     
-                    local id = tonumber(tree.Name)
-                    if id then
-                        local objectData = tree:FindFirstChild("ObjectData")
-                        if objectData then
-                            local health = objectData:FindFirstChild("Health")
-                            if health and health.Value > 0 then
-                                print("🪓 Cutting tree:", id, "Health:", health.Value)
-                                
-                                -- Coba berbagai format FireServer
-                                cutTreeEvent:FireServer({
-                                    TreeId = id,
-                                    HitPower = 99999
-                                })
-                                
-                                -- Atau coba format lain kalau yang atas ga jalan:
-                                -- cutTreeEvent:FireServer(id, 99999)
-                                -- cutTreeEvent:FireServer(id)
-                                
-                                wait(0.05) -- Small delay antar pohon
-                            end
-                        end
+                    local treeId = tonumber(tree.Name)
+                    if treeId then
+                        -- Langsung FireServer tanpa cek health biar instant
+                        cutTreeEvent:FireServer(treeId)
                     end
                 end
             end)
         end
+    end
+end)
         
         -- ===== PROSPECTING - AUTO DIG =====
         if toggles.AutoDig then
