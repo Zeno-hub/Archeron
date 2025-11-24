@@ -117,7 +117,7 @@ end
 local function initializeRemotesTreeCutting()
     pcall(function()
         print("🔍 DEBUG: Mencari CutTree event...")
-        
+  
         local eventsFolder = game.ReplicatedStorage:FindFirstChild("Events")
         if eventsFolder then
             print("✅ Events folder ketemu!")
@@ -142,6 +142,7 @@ local function initializeRemotesTreeCutting()
             warn("❌ Events folder TIDAK KETEMU!")
         end
     end)
+end  
 
 local function initializeRemotes()
     if currentPlaceId == 104785855204405 then -- Tree Cutting
