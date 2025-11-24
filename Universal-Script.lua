@@ -159,78 +159,74 @@ player.CharacterAdded:Connect(function()
 end)
 
 -- Auto loop untuk remotes
+-- Auto loop untuk remotes (UPDATED!)
 spawn(function()
-    print("🔄 Auto loop started!")
     while true do
-        for name, isActive in pairs(toggles) do
-            if isActive then
-                print("⚡ Toggle aktif:", name, "| Remote exists:", Remotes[name] ~= nil)
+        wait(0.1) -- Speed control
+        
+        -- ===== TREE CUTTING - AUTO CHOP =====
+        if toggles.AutoChop then
+            pcall(function()
+                local treeFolder = workspace:FindFirstChild("Objects") 
+                                or workspace:FindFirstChild("Trees") 
+                                or workspace:FindFirstChild("WorldTrees") 
+                                or workspace:FindFirstChild("TreeFolder")
                 
-                if Remotes[name] then
-                    pcall(function()
-                        local remote = Remotes[name]
+                if treeFolder then
+                    for _, tree in ipairs(treeFolder:GetChildren()) do
+                        if not toggles.AutoChop then break end
                         
-                        if name == "AutoChop" then
-    print("🪓 AutoChop dijalankan...")
-    -- Auto Chop FIX dengan multiple fallback methods
-    local treeFolder = workspace:FindFirstChild("Trees") 
-                    or workspace:FindFirstChild("WorldTrees") 
-                    or workspace:FindFirstChild("TreeFolder")
-                    or workspace:FindFirstChild("Map")
-
-    if treeFolder then
-        print("🌳 Tree folder ditemukan:", treeFolder.Name, "| Jumlah children:", #treeFolder:GetChildren())
-        local treeCount = 0
-        for _, tree in ipairs(treeFolder:GetChildren()) do
-            local object = tree:FindFirstChild("ObjectData")
-            local id = tonumber(tree.Name)
-
-            if id and object and object:FindFirstChild("Health") then
-                if object.Health.Value > 0 then
-                    treeCount = treeCount + 1
-                    print("🎯 Attacking tree ID:", id, "HP:", object.Health.Value)
-                    
-                    pcall(function()
-                        -- Method 1: Format dengan table
-                        remote.Instance:FireServer({
-                            ["TreeId"] = id,
-                            ["HitPower"] = 99999,
-                        })
-                        print("✅ Method 1 fired")
-                    end)
-                    
-                    -- Backup Method 2: Fire langsung ID
-                    pcall(function()
-                        remote.Instance:FireServer(id, 99999)
-                        print("✅ Method 2 fired")
-                    end)
-                    
-                    -- Backup Method 3: Fire hanya ID
-                    pcall(function()
-                        remote.Instance:FireServer(id)
-                        print("✅ Method 3 fired")
-                    end)
+                        local id = tonumber(tree.Name)
+                        local objectData = tree:FindFirstChild("ObjectData")
+                        
+                        if id and objectData then
+                            local health = objectData:FindFirstChild("Health")
+                            if health and health.Value > 0 then
+                                -- Format terbaru dengan HitPower
+                                game:GetService("ReplicatedStorage").Events.CutTree:FireServer({
+                                    TreeId = id,
+                                    HitPower = 99999
+                                })
+                            end
+                        end
+                    end
                 end
-            end
+            end)
         end
-        print("📊 Total trees attacked:", treeCount)
-    else
-        -- Debug: print struktur workspace
-        print("❌ Tree folder tidak ditemukan!")
-        print("📂 Workspace children:")
-        for _, v in pairs(workspace:GetChildren()) do
-            print("  -", v.Name)
+        
+        -- ===== PROSPECTING - AUTO DIG =====
+        if toggles.AutoDig then
+            pcall(function()
+                local character = player.Character
+                if character and character:FindFirstChild("Plastic Pan") then
+                    character["Plastic Pan"].Scripts.Collect:InvokeServer(1)
+                end
+            end)
+        end
+        
+        -- ===== PROSPECTING - AUTO PAN =====
+        if toggles.AutoPan then
+            pcall(function()
+                local character = player.Character
+                if character and character:FindFirstChild("Plastic Pan") then
+                    character["Plastic Pan"].Scripts.Pan:InvokeServer()
+                end
+            end)
+        end
+        
+        -- ===== PROSPECTING - AUTO SHAKE =====
+        if toggles.AutoShake then
+            pcall(function()
+                local character = player.Character
+                if character and character:FindFirstChild("Plastic Pan") then
+                    character["Plastic Pan"].Scripts.Shake:FireServer()
+                end
+            end)
         end
     end
-                        -- Standard remote calling (dibawah method AutoChop)
-                        elseif remote.Type == "Function" then
-                            remote.Instance:InvokeServer(unpack(remote.Args))
-                        elseif remote.Type == "Event" then
-                            remote.Instance:FireServer(unpack(remote.Args))
-                        end
-                    end)
-                else
-                    print("❌ Remote tidak ditemukan untuk:", name)
+end)
+                
+                 print("❌ Remote tidak ditemukan untuk:", name)
                 end
             end
         end
