@@ -438,7 +438,7 @@ local MenuSidebar = Instance.new("Frame")
 MenuSidebar.Name = "MenuSidebar"
 MenuSidebar.Size = UDim2.new(0, 150, 1, -90)
 MenuSidebar.Position = UDim2.new(0, 10, 0, 80)
-MenuSidebar.BackgroundColor3 = Color3.fromRGB(45, 45, 65)
+MenuSidebar.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
 MenuSidebar.BorderSizePixel = 0
 MenuSidebar.ZIndex = 2
 MenuSidebar.Parent = MainFrame
@@ -708,7 +708,7 @@ for i, menuKey in ipairs(currentConfig.menus) do
     local MenuButton = Instance.new("TextButton")
     MenuButton.Name = menuKey
     MenuButton.Size = UDim2.new(1, -10, 0, 45)
-    MenuButton.BackgroundColor3 = Color3.fromRGB(45, 45, 65) -- Dark purple/gray
+    MenuButton.BackgroundColor3 = Color3.fromRGB(35, 35, 50) -- Dark purple/gray
     MenuButton.BorderSizePixel = 0
     MenuButton.Text = getText(menuKey)
     MenuButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -730,13 +730,13 @@ for i, menuKey in ipairs(currentConfig.menus) do
     -- Hover effects
     MenuButton.MouseEnter:Connect(function()
         if currentMenu ~= menuKey then
-            TweenService:Create(MenuButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 85)}):Play()
+            TweenService:Create(MenuButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(100, 100, 150)}):Play()
         end
     end)
     
     MenuButton.MouseLeave:Connect(function()
         if currentMenu ~= menuKey then
-            TweenService:Create(MenuButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(45, 45, 65)}):Play()
+            TweenService:Create(MenuButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(35, 35, 50)}):Play()
         end
     end)
 end
