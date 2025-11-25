@@ -98,10 +98,10 @@ local translations = {
         remoteConfig = "Konfigurasi Remote Event",
         remoteDesc = "Edit REMOTE_EVENT_PATH di script untuk connect ke remote event game.\nAuto Loop akan otomatis nyambung ke remote event yang kamu set.",
         
-        menuMain = "Utama",
-        menuPlayer = "Pemain",
-        menuInfo = "Informasi",
-        menuMisc = "Lainnya",
+        menuMain = "🔥 Utama",
+        menuPlayer = "🕹️ Pemain",
+        menuInfo = "📄 Informasi",
+        menuMisc = "⚡ Lainnya",
         
         autoFarm = "Farm Otomatis",
         autoFarmDesc = "Farm sumber daya secara otomatis",
