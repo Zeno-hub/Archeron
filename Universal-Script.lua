@@ -60,10 +60,10 @@ local translations = {
         remoteDesc = "Edit REMOTE_EVENT_PATH in script to connect to game remote event.\nAuto Loop will automatically connect to the remote event you set.",
         
         -- Menu names
-        menuMain = "Main",
-        menuPlayer = "Player",
-        menuInfo = "Information",
-        menuMisc = "Misc",
+        menuMain = "🔥 Main",
+        menuPlayer = "🕹️ Player",
+        menuInfo = "📄 Information",
+        menuMisc = "⚡ Misc",
         
         -- Features
         autoFarm = "Auto Farm",
