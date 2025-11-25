@@ -680,7 +680,7 @@ local function loadMenu(menuKey)
         if key == menuKey then
             btn.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
         else
-            btn.BackgroundColor3 = Color3.fromRGB(40, 100, 220)
+            btn.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
         end
     end
     
@@ -730,7 +730,7 @@ for i, menuKey in ipairs(currentConfig.menus) do
     -- Hover effects
     MenuButton.MouseEnter:Connect(function()
         if currentMenu ~= menuKey then
-            TweenService:Create(MenuButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(100, 100, 150)}):Play()
+            TweenService:Create(MenuButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(80, 50, 120)}):Play()
         end
     end)
     
