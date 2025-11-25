@@ -1,1134 +1,873 @@
--- Wait for game to fully load
-if not game:IsLoaded() then
-    game.Loaded:Wait()
-end
+-- Archeron Hub Advanced GUI Script
+-- Created for Roblox with Multi-Game & Multi-Language Support
 
-wait(1) -- Extra safety delay
-
-local player = game:GetService("Players").LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui", 10)
-local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
-local HttpService = game:GetService("HttpService")
+local LocalizationService = game:GetService("LocalizationService")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
 
--- WHITELIST GAME (Tambah PlaceId di sini)
-local WHITELISTED_GAMES = {
-    [104785855204405] = {
-        name = "Tree Cutting Incremental",
+-- Cek apakah GUI sudah ada
+if playerGui:FindFirstChild("ArcheronHub") then
+    playerGui.ArcheronHub:Destroy()
+    print("⚠️ Old Archeron Hub GUI removed")
+    wait(0.1)
+end
+
+-- Cek apakah toggle button sudah ada
+if playerGui:FindFirstChild("ArcheronToggle") then
+    playerGui.ArcheronToggle:Destroy()
+    print("⚠️ Old Archeron Toggle removed")
+    wait(0.1)
+end
+
+-- ========================================
+-- LANGUAGE SYSTEM
+-- ========================================
+
+local currentLanguage = "en" -- default
+
+-- Deteksi bahasa otomatis
+local function detectLanguage()
+    local success, result = pcall(function()
+        return LocalizationService.RobloxLocaleId
+    end)
+    
+    if success and result then
+        if result:find("^id") then return "id" -- Indonesia
+        elseif result:find("^es") then return "es" -- Spanish
+        elseif result:find("^pt") then return "pt" -- Portuguese
+        elseif result:find("^fr") then return "fr" -- French
+        elseif result:find("^de") then return "de" -- German
+        end
+    end
+    return "en" -- English default
+end
+
+currentLanguage = detectLanguage()
+
+-- Translations dictionary
+local translations = {
+    en = {
+        hubActive = "Archeron - Hub Active ✅",
+        loadSuccess = "Successfully loaded and ready to use!",
+        autoLoop = "Auto Loop",
+        statusEnabled = "Status: Enabled",
+        statusDisabled = "Status: Disabled",
+        autoLoopEnabled = "Auto loop has been enabled!",
+        autoLoopDisabled = "Auto loop has been disabled!",
+        remoteConfig = "Remote Event Configuration",
+        remoteDesc = "Edit REMOTE_EVENT_PATH in script to connect to game remote event.\nAuto Loop will automatically connect to the remote event you set.",
+        
+        -- Menu names
+        menuMain = "Main",
+        menuPlayer = "Player",
+        menuInfo = "Information",
+        menuMisc = "Misc",
+        
+        -- Features
+        autoFarm = "Auto Farm",
+        autoFarmDesc = "Automatically farm resources",
+        autoChop = "Auto Chop",
+        autoChopDesc = "Automatically chop trees",
+        fly = "Fly",
+        flyDesc = "Enable flight (Mobile compatible)",
+        noclip = "Noclip",
+        noclipDesc = "Walk through walls",
+        walkspeed = "Walk Speed",
+        walkspeedDesc = "Adjust your walking speed",
+        jumppower = "Jump Power",
+        jumppowerDesc = "Adjust your jump height",
+        autoCollect = "Auto Collect",
+        autoCollectDesc = "Automatically collect items",
+        esp = "ESP",
+        espDesc = "See players through walls",
+        infiniteJump = "Infinite Jump",
+        infiniteJumpDesc = "Jump infinitely",
+        godMode = "God Mode",
+        godModeDesc = "Take no damage",
+    },
+    id = {
+        hubActive = "Archeron - Hub Aktif ✅",
+        loadSuccess = "Berhasil dimuat dan siap digunakan!",
+        autoLoop = "Loop Otomatis",
+        statusEnabled = "Status: Aktif",
+        statusDisabled = "Status: Nonaktif",
+        autoLoopEnabled = "Loop otomatis telah diaktifkan!",
+        autoLoopDisabled = "Loop otomatis telah dinonaktifkan!",
+        remoteConfig = "Konfigurasi Remote Event",
+        remoteDesc = "Edit REMOTE_EVENT_PATH di script untuk connect ke remote event game.\nAuto Loop akan otomatis nyambung ke remote event yang kamu set.",
+        
+        menuMain = "Utama",
+        menuPlayer = "Pemain",
+        menuInfo = "Informasi",
+        menuMisc = "Lainnya",
+        
+        autoFarm = "Farm Otomatis",
+        autoFarmDesc = "Farm sumber daya secara otomatis",
+        autoChop = "Potong Otomatis",
+        autoChopDesc = "Potong pohon secara otomatis",
+        fly = "Terbang",
+        flyDesc = "Aktifkan terbang (Kompatibel mobile)",
+        noclip = "Tembus Dinding",
+        noclipDesc = "Berjalan menembus dinding",
+        walkspeed = "Kecepatan Jalan",
+        walkspeedDesc = "Atur kecepatan berjalanmu",
+        jumppower = "Kekuatan Lompat",
+        jumppowerDesc = "Atur tinggi lompatanmu",
+        autoCollect = "Ambil Otomatis",
+        autoCollectDesc = "Ambil item secara otomatis",
+        esp = "ESP",
+        espDesc = "Lihat pemain melalui dinding",
+        infiniteJump = "Lompat Tak Terbatas",
+        infiniteJumpDesc = "Lompat tanpa batas",
+        godMode = "Mode Dewa",
+        godModeDesc = "Tidak menerima damage",
+    }
+}
+
+local function getText(key)
+    return translations[currentLanguage][key] or translations.en[key] or key
+end
+
+-- ========================================
+-- GAME CONFIGURATIONS
+-- ========================================
+
+local gameConfigs = {
+    -- Sticks Incremental
+    [120870800305934] = {
+        menus = {"menuMain", "menuPlayer", "menuInfo"},
         features = {
-            Main = {
-                {name = "Auto Chop Tree", desc = "Potong pohon otomatis", key = "AutoChop", warning = true, note = "If you want to use the cut trees kill aura, you must be able to instantly kill the tree. However, this does not apply to trees that are still alive. If you want to use the cut trees kill aura, you must be able to instantly kill the tree. But this applies to the tree spawns, which are already very fast. If you're stubborn, you'll experience lag/delay."}
+            menuMain = {
+                {name = "autoChop", type = "toggle"},
+                {name = "autoCollect", type = "toggle"},
+                {name = "autoFarm", type = "toggle"},
             },
-            Player = {
-                {name = "Fly", desc = "PC: WASD + Space/Shift | Mobile: Joystick + Up/Down", key = "Fly"},
-                {name = "WalkSpeed", desc = "Atur kecepatan berjalan", key = "WalkSpeed"},
-                {name = "Noclip", desc = "Tembus tembok dan objek", key = "Noclip"}
+            menuPlayer = {
+                {name = "fly", type = "toggle"},
+                {name = "noclip", type = "toggle"},
+                {name = "walkspeed", type = "slider", min = 16, max = 200, default = 16},
+                {name = "jumppower", type = "slider", min = 50, max = 300, default = 50},
+            },
+            menuInfo = {
+                -- Info static, bisa dikustom
             }
         }
     },
-    [129827112113663] = {
-        name = "Prospecting",
+    
+    -- Game Example 2 (ganti dengan game ID lain)
+    [1234567890] = {
+        menus = {"menuMain", "menuMisc"},
         features = {
-            Main = {
-                {name = "Auto Dig", desc = "Gali otomatis", key = "AutoDig"},
-                {name = "Auto Pan", desc = "Pan emas otomatis", key = "AutoPan"},
-                {name = "Auto Shake", desc = "Goyang pan otomatis", key = "AutoShake"}
+            menuMain = {
+                {name = "autoFarm", type = "toggle"},
+                {name = "autoCollect", type = "toggle"},
             },
-            Player = {
-                {name = "Fly", desc = "PC: WASD + Space/Shift | Mobile: Joystick + Up/Down", key = "Fly"},
-                {name = "WalkSpeed", desc = "Atur kecepatan berjalan", key = "WalkSpeed"},
-                {name = "Noclip", desc = "Tembus tembok dan objek", key = "Noclip"}
+            menuMisc = {
+                {name = "esp", type = "toggle"},
+                {name = "infiniteJump", type = "toggle"},
+                {name = "godMode", type = "toggle"},
             }
         }
     }
 }
 
--- Cek apakah game di whitelist
-local currentPlaceId = game.PlaceId
-local gameConfig = WHITELISTED_GAMES[currentPlaceId]
+-- Get current game config
+local currentGameId = game.PlaceId
+local currentConfig = gameConfigs[currentGameId]
 
-if not gameConfig then
-    warn("❌ Game ini tidak tersedia di Archeron Hub!")
-    warn("PlaceId saat ini:", currentPlaceId)
-    wait(2)
-    player:Kick("Game tidak terdaftar dalam whitelist Archeron Hub\nPlaceId: " .. tostring(currentPlaceId))
+if not currentConfig then
+    player:Kick("⚠️ Archeron Hub\n\nGame ini tidak didukung oleh Archeron Hub.\nSilakan gunakan di game yang didukung.")
     return
 end
 
-print("✅ Game terdeteksi: " .. gameConfig.name)
-print("📍 PlaceId:", currentPlaceId)
+-- ========================================
+-- CONFIGURATION SECTION
+-- ========================================
 
--- Hapus GUI lama (dengan error handling)
-pcall(function()
-    if playerGui:FindFirstChild("ArcheronHub") then
-        playerGui.ArcheronHub:Destroy()
-        wait(0.5)
-    end
-end)
+local LOGO_TEXTURE_ID = "rbxassetid://139400776308881"
+local REMOTE_EVENT_PATH = nil
+local REMOTE_EVENT_NAME = "YourRemoteEvent"
 
--- RemoteEvent / RemoteFunction table (DINAMIS SESUAI GAME)
-local Remotes = {}
-
--- Toggle states (DINAMIS) - PINDAH KE ATAS BIAR GA ERROR
-local toggles = {
-    AutoChop = false,
-    AutoDig = false,
-    AutoPan = false,
-    AutoShake = false,
-    Fly = false,
-    Noclip = false
-}
-
-local walkSpeedValue = 16
-
-local function initializeRemotesProspecting()
-    pcall(function()
-        if player.Character and player.Character:FindFirstChild("Plastic Pan") then
-            local plasticPan = player.Character["Plastic Pan"]
-            if plasticPan:FindFirstChild("Scripts") then
-                local scripts = plasticPan.Scripts
-                if scripts:FindFirstChild("Collect") then
-                    Remotes.AutoDig = {
-                        Instance = scripts.Collect,
-                        Type = "Function",
-                        Args = {1}
-                    }
-                end
-                if scripts:FindFirstChild("Pan") then
-                    Remotes.AutoPan = {
-                        Instance = scripts.Pan,
-                        Type = "Function",
-                        Args = {}
-                    }
-                end
-                if scripts:FindFirstChild("Shake") then
-                    Remotes.AutoShake = {
-                        Instance = scripts.Shake,
-                        Type = "Event",
-                        Args = {}
-                    }
-                end
-            end
-        end
-    end)
+local function getRemoteArgs()
+    return {}
 end
 
-local function initializeRemotesTreeCutting()
-    pcall(function()
-        print("🔍 DEBUG: Mencari CutTree event...")
-  
-        local eventsFolder = game.ReplicatedStorage:FindFirstChild("Events")
-        if eventsFolder then
-            print("✅ Events folder ketemu!")
+-- ========================================
+-- MAIN GUI
+-- ========================================
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ArcheronHub"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Parent = playerGui
+
+-- ========================================
+-- NOTIFICATION SYSTEM
+-- ========================================
+
+local NotificationFrame = Instance.new("Frame")
+NotificationFrame.Name = "NotificationContainer"
+NotificationFrame.Size = UDim2.new(0, 300, 1, 0)
+NotificationFrame.Position = UDim2.new(1, -320, 0, 0)
+NotificationFrame.BackgroundTransparency = 1
+NotificationFrame.Parent = ScreenGui
+
+local notificationQueue = {}
+
+local function createNotification(title, message, duration)
+    duration = duration or 5
+    
+    local notif = Instance.new("Frame")
+    notif.Size = UDim2.new(1, 0, 0, 80)
+    notif.Position = UDim2.new(0, 0, 1, 20)
+    notif.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+    notif.BorderSizePixel = 0
+    notif.ClipsDescendants = true
+    notif.Parent = NotificationFrame
+    
+    local notifCorner = Instance.new("UICorner")
+    notifCorner.CornerRadius = UDim.new(0, 10)
+    notifCorner.Parent = notif
+    
+    local accentBar = Instance.new("Frame")
+    accentBar.Size = UDim2.new(0, 4, 1, 0)
+    accentBar.Position = UDim2.new(0, 0, 0, 0)
+    accentBar.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+    accentBar.BorderSizePixel = 0
+    accentBar.Parent = notif
+    
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(1, -50, 0, 25)
+    titleLabel.Position = UDim2.new(0, 15, 0, 10)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = title
+    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 14
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Parent = notif
+    
+    local messageLabel = Instance.new("TextLabel")
+    messageLabel.Size = UDim2.new(1, -50, 0, 40)
+    messageLabel.Position = UDim2.new(0, 15, 0, 35)
+    messageLabel.BackgroundTransparency = 1
+    messageLabel.Text = message
+    messageLabel.TextColor3 = Color3.fromRGB(200, 200, 220)
+    messageLabel.Font = Enum.Font.Gotham
+    messageLabel.TextSize = 12
+    messageLabel.TextXAlignment = Enum.TextXAlignment.Left
+    messageLabel.TextYAlignment = Enum.TextYAlignment.Top
+    messageLabel.TextWrapped = true
+    messageLabel.Parent = notif
+    
+    local icon = Instance.new("ImageLabel")
+    icon.Size = UDim2.new(0, 30, 0, 30)
+    icon.Position = UDim2.new(1, -40, 0, 10)
+    icon.BackgroundTransparency = 1
+    icon.Image = LOGO_TEXTURE_ID
+    icon.ScaleType = Enum.ScaleType.Fit
+    icon.Parent = notif
+    
+    local slideIn = TweenService:Create(notif, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        Position = UDim2.new(0, 0, 1, -90)
+    })
+    slideIn:Play()
+    
+    table.insert(notificationQueue, notif)
+    
+    spawn(function()
+        task.wait(0.1)
+        for i, n in ipairs(notificationQueue) do
+            local targetPos = UDim2.new(0, 0, 1, -90 - ((i - 1) * 90))
+            TweenService:Create(n, TweenInfo.new(0.3), {Position = targetPos}):Play()
+        end
+    end)
+    
+    spawn(function()
+        task.wait(duration)
+        local slideOut = TweenService:Create(notif, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+            Position = UDim2.new(0, 0, 1, 20)
+        })
+        slideOut:Play()
+        
+        slideOut.Completed:Connect(function()
+            for i, n in ipairs(notificationQueue) do
+                if n == notif then
+                    table.remove(notificationQueue, i)
+                    break
+                end
+            end
+            notif:Destroy()
             
-            local cutTreeEvents = eventsFolder:FindFirstChild("CutTree")
-            if cutTreeEvents then
-                print("✅ CutTree Events KETEMU:", cutTreeEvents:GetFullName())
-                Remotes.AutoChop = {
-                    Instance = CutTreeEvents,
-                    Type = "Events",
-                    Args = {}
-                }
-            else
-                warn("❌ CutTree TIDAK ADA di Events!")
-                -- Print semua isi Events folder
-                print("📋 Isi Events folder:")
-                for _, v in pairs(eventsFolder:GetChildren()) do
-                    print("  - " .. v.Name .. " (" .. v.ClassName .. ")")
-                end
+            for i, n in ipairs(notificationQueue) do
+                local targetPos = UDim2.new(0, 0, 1, -90 - ((i - 1) * 90))
+                TweenService:Create(n, TweenInfo.new(0.3), {Position = targetPos}):Play()
             end
+        end)
+    end)
+end
+
+-- ========================================
+-- MAIN FRAME WITH LOGO BACKGROUND
+-- ========================================
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 700, 0, 450)
+MainFrame.Position = UDim2.new(0.5, -350, 0.5, -225)
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+MainFrame.BorderSizePixel = 0
+MainFrame.ClipsDescendants = true
+MainFrame.Parent = ScreenGui
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 15)
+MainCorner.Parent = MainFrame
+
+-- Background Logo (Watermark style)
+local BackgroundLogo = Instance.new("ImageLabel")
+BackgroundLogo.Name = "BackgroundLogo"
+BackgroundLogo.Size = UDim2.new(0, 300, 0, 300)
+BackgroundLogo.Position = UDim2.new(0.5, -150, 0.5, -150)
+BackgroundLogo.AnchorPoint = Vector2.new(0.5, 0.5)
+BackgroundLogo.BackgroundTransparency = 1
+BackgroundLogo.Image = LOGO_TEXTURE_ID
+BackgroundLogo.ImageTransparency = 0.95
+BackgroundLogo.ScaleType = Enum.ScaleType.Fit
+BackgroundLogo.ZIndex = 1
+BackgroundLogo.Parent = MainFrame
+
+local LogoCornerBg = Instance.new("UICorner")
+LogoCornerBg.CornerRadius = UDim.new(0, 12)
+LogoCornerBg.Parent = BackgroundLogo
+
+-- Header Frame
+local HeaderFrame = Instance.new("Frame")
+HeaderFrame.Name = "HeaderFrame"
+HeaderFrame.Size = UDim2.new(1, 0, 0, 70)
+HeaderFrame.Position = UDim2.new(0, 0, 0, 0)
+HeaderFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+HeaderFrame.BorderSizePixel = 0
+HeaderFrame.ZIndex = 2
+HeaderFrame.Parent = MainFrame
+
+local HeaderCorner = Instance.new("UICorner")
+HeaderCorner.CornerRadius = UDim.new(0, 15)
+HeaderCorner.Parent = HeaderFrame
+
+local HeaderCover = Instance.new("Frame")
+HeaderCover.Size = UDim2.new(1, 0, 0, 15)
+HeaderCover.Position = UDim2.new(0, 0, 1, -15)
+HeaderCover.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+HeaderCover.BorderSizePixel = 0
+HeaderCover.ZIndex = 2
+HeaderCover.Parent = HeaderFrame
+
+-- Logo in Header
+local LogoFrame = Instance.new("ImageLabel")
+LogoFrame.Name = "LogoFrame"
+LogoFrame.Size = UDim2.new(0, 50, 0, 50)
+LogoFrame.Position = UDim2.new(0, 10, 0, 10)
+LogoFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 65)
+LogoFrame.BorderSizePixel = 0
+LogoFrame.Image = LOGO_TEXTURE_ID
+LogoFrame.ScaleType = Enum.ScaleType.Fit
+LogoFrame.ZIndex = 3
+LogoFrame.Parent = HeaderFrame
+
+local LogoCorner = Instance.new("UICorner")
+LogoCorner.CornerRadius = UDim.new(0, 10)
+LogoCorner.Parent = LogoFrame
+
+-- Text Info
+local TextFrame = Instance.new("Frame")
+TextFrame.Name = "TextFrame"
+TextFrame.Size = UDim2.new(1, -70, 1, 0)
+TextFrame.Position = UDim2.new(0, 70, 0, 0)
+TextFrame.BackgroundTransparency = 1
+TextFrame.ZIndex = 3
+TextFrame.Parent = HeaderFrame
+
+local GameNameLabel = Instance.new("TextLabel")
+GameNameLabel.Name = "GameName"
+GameNameLabel.Size = UDim2.new(1, 0, 0, 30)
+GameNameLabel.Position = UDim2.new(0, 0, 0, 12)
+GameNameLabel.BackgroundTransparency = 1
+GameNameLabel.Text = "Loading..."
+GameNameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+GameNameLabel.Font = Enum.Font.GothamBold
+GameNameLabel.TextSize = 18
+GameNameLabel.TextXAlignment = Enum.TextXAlignment.Left
+GameNameLabel.TextYAlignment = Enum.TextYAlignment.Top
+GameNameLabel.ZIndex = 3
+GameNameLabel.Parent = TextFrame
+
+spawn(function()
+    local success, gameName = pcall(function()
+        return game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
+    end)
+    if success then
+        GameNameLabel.Text = gameName
+    else
+        GameNameLabel.Text = "Unknown Game"
+    end
+end)
+
+local HubNameLabel = Instance.new("TextLabel")
+HubNameLabel.Name = "HubName"
+HubNameLabel.Size = UDim2.new(1, 0, 0, 20)
+HubNameLabel.Position = UDim2.new(0, 0, 0, 42)
+HubNameLabel.BackgroundTransparency = 1
+HubNameLabel.Text = "Archeron - Hub"
+HubNameLabel.TextColor3 = Color3.fromRGB(150, 150, 200)
+HubNameLabel.Font = Enum.Font.Gotham
+HubNameLabel.TextSize = 14
+HubNameLabel.TextXAlignment = Enum.TextXAlignment.Left
+HubNameLabel.TextYAlignment = Enum.TextYAlignment.Top
+HubNameLabel.ZIndex = 3
+HubNameLabel.Parent = TextFrame
+
+-- ========================================
+-- MENU SIDEBAR (BLUE BAR)
+-- ========================================
+
+local MenuSidebar = Instance.new("Frame")
+MenuSidebar.Name = "MenuSidebar"
+MenuSidebar.Size = UDim2.new(0, 150, 1, -90)
+MenuSidebar.Position = UDim2.new(0, 10, 0, 80)
+MenuSidebar.BackgroundColor3 = Color3.fromRGB(45, 45, 65)
+MenuSidebar.BorderSizePixel = 0
+MenuSidebar.ZIndex = 2
+MenuSidebar.Parent = MainFrame
+
+local SidebarCorner = Instance.new("UICorner")
+SidebarCorner.CornerRadius = UDim.new(0, 10)
+SidebarCorner.Parent = MenuSidebar
+
+local MenuList = Instance.new("UIListLayout")
+MenuList.SortOrder = Enum.SortOrder.LayoutOrder
+MenuList.Padding = UDim.new(0, 5)
+MenuList.Parent = MenuSidebar
+
+-- ========================================
+-- CONTENT AREA (RIGHT SIDE)
+-- ========================================
+
+local ContentArea = Instance.new("ScrollingFrame")
+ContentArea.Name = "ContentArea"
+ContentArea.Size = UDim2.new(1, -180, 1, -90)
+ContentArea.Position = UDim2.new(0, 170, 0, 80)
+ContentArea.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+ContentArea.BorderSizePixel = 0
+ContentArea.ScrollBarThickness = 6
+ContentArea.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 120)
+ContentArea.ZIndex = 2
+ContentArea.Parent = MainFrame
+
+local ContentCorner = Instance.new("UICorner")
+ContentCorner.CornerRadius = UDim.new(0, 10)
+ContentCorner.Parent = ContentArea
+
+local ContentList = Instance.new("UIListLayout")
+ContentList.SortOrder = Enum.SortOrder.LayoutOrder
+ContentList.Padding = UDim.new(0, 10)
+ContentList.Parent = ContentArea
+
+local ContentPadding = Instance.new("UIPadding")
+ContentPadding.PaddingTop = UDim.new(0, 10)
+ContentPadding.PaddingLeft = UDim.new(0, 10)
+ContentPadding.PaddingRight = UDim.new(0, 10)
+ContentPadding.Parent = ContentArea
+
+-- ========================================
+-- FEATURE CREATION FUNCTIONS
+-- ========================================
+
+local featureStates = {}
+
+local function createToggleFeature(featureName, parent)
+    local featureKey = featureName
+    featureStates[featureKey] = false
+    
+    local ToggleFrame = Instance.new("Frame")
+    ToggleFrame.Size = UDim2.new(1, -10, 0, 70)
+    ToggleFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+    ToggleFrame.BorderSizePixel = 0
+    ToggleFrame.Parent = parent
+    
+    local ToggleCorner = Instance.new("UICorner")
+    ToggleCorner.CornerRadius = UDim.new(0, 10)
+    ToggleCorner.Parent = ToggleFrame
+    
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, -100, 0, 25)
+    Title.Position = UDim2.new(0, 15, 0, 10)
+    Title.BackgroundTransparency = 1
+    Title.Text = getText(featureName)
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.Font = Enum.Font.GothamBold
+    Title.TextSize = 14
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.Parent = ToggleFrame
+    
+    local Desc = Instance.new("TextLabel")
+    Desc.Size = UDim2.new(1, -100, 0, 30)
+    Desc.Position = UDim2.new(0, 15, 0, 35)
+    Desc.BackgroundTransparency = 1
+    Desc.Text = getText(featureName .. "Desc")
+    Desc.TextColor3 = Color3.fromRGB(150, 150, 170)
+    Desc.Font = Enum.Font.Gotham
+    Desc.TextSize = 11
+    Desc.TextXAlignment = Enum.TextXAlignment.Left
+    Desc.TextWrapped = true
+    Desc.Parent = ToggleFrame
+    
+    local ToggleButton = Instance.new("TextButton")
+    ToggleButton.Size = UDim2.new(0, 70, 0, 35)
+    ToggleButton.Position = UDim2.new(1, -85, 0.5, -17.5)
+    ToggleButton.BackgroundColor3 = Color3.fromRGB(200, 100, 100)
+    ToggleButton.BorderSizePixel = 0
+    ToggleButton.Text = "OFF"
+    ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ToggleButton.Font = Enum.Font.GothamBold
+    ToggleButton.TextSize = 14
+    ToggleButton.Parent = ToggleFrame
+    
+    local ButtonCorner = Instance.new("UICorner")
+    ButtonCorner.CornerRadius = UDim.new(0, 8)
+    ButtonCorner.Parent = ToggleButton
+    
+    ToggleButton.MouseButton1Click:Connect(function()
+        featureStates[featureKey] = not featureStates[featureKey]
+        
+        if featureStates[featureKey] then
+            ToggleButton.Text = "ON"
+            ToggleButton.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
+            createNotification(getText(featureName), getText("statusEnabled"), 3)
         else
-            warn("❌ Events folder TIDAK KETEMU!")
+            ToggleButton.Text = "OFF"
+            ToggleButton.BackgroundColor3 = Color3.fromRGB(200, 100, 100)
+            createNotification(getText(featureName), getText("statusDisabled"), 3)
         end
     end)
-end  
-
-local function initializeRemotes()
-    if currentPlaceId == 104785855204405 then -- Tree Cutting
-        initializeRemotesTreeCutting()
-    elseif currentPlaceId == 129827112113663 then -- Prospecting
-        initializeRemotesProspecting()
-    end
 end
 
-initializeRemotes()
-print("🔧 Remotes initialized. Checking...")
-print("📋 Current Remotes:", HttpService:JSONEncode(Remotes))
-print("🎮 Toggle states:", HttpService:JSONEncode(toggles))
-
-player.CharacterAdded:Connect(function()
-    wait(1)
-    initializeRemotes()
-end)
-
--- Auto loop untuk remotes
--- Auto loop untuk remotes (UPDATED!)
-spawn(function()
-    while true do
-        wait(0.1) -- Speed control
-        
-        -- ===== TREE CUTTING - AUTO CHOP =====
-        if toggles.AutoChop then
-            pcall(function()
-                local cutTreeEvent = game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("CutTree")
-                local treeFolder = workspace:FindFirstChild("Objects")
-                
-                if not treeFolder then return end
-                
-                -- Tebang SEMUA pohon sekaligus
-                for _, tree in ipairs(treeFolder:GetChildren()) do
-                    if not toggles.AutoChop then break end
-                    
-                    local treeId = tonumber(tree.Name)
-                    if treeId then
-                        -- Langsung FireServer tanpa cek health biar instant
-                        cutTreeEvent:FireServer(treeId)
-                    end
-                end
-            end)
+local function createSliderFeature(featureName, minVal, maxVal, defaultVal, parent)
+    local featureKey = featureName
+    featureStates[featureKey] = defaultVal
+    
+    local SliderFrame = Instance.new("Frame")
+    SliderFrame.Size = UDim2.new(1, -10, 0, 90)
+    SliderFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+    SliderFrame.BorderSizePixel = 0
+    SliderFrame.Parent = parent
+    
+    local SliderCorner = Instance.new("UICorner")
+    SliderCorner.CornerRadius = UDim.new(0, 10)
+    SliderCorner.Parent = SliderFrame
+    
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, -20, 0, 25)
+    Title.Position = UDim2.new(0, 15, 0, 10)
+    Title.BackgroundTransparency = 1
+    Title.Text = getText(featureName)
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.Font = Enum.Font.GothamBold
+    Title.TextSize = 14
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.Parent = SliderFrame
+    
+    local Desc = Instance.new("TextLabel")
+    Desc.Size = UDim2.new(1, -20, 0, 20)
+    Desc.Position = UDim2.new(0, 15, 0, 35)
+    Desc.BackgroundTransparency = 1
+    Desc.Text = getText(featureName .. "Desc")
+    Desc.TextColor3 = Color3.fromRGB(150, 150, 170)
+    Desc.Font = Enum.Font.Gotham
+    Desc.TextSize = 11
+    Desc.TextXAlignment = Enum.TextXAlignment.Left
+    Desc.Parent = SliderFrame
+    
+    local ValueLabel = Instance.new("TextLabel")
+    ValueLabel.Size = UDim2.new(0, 60, 0, 20)
+    ValueLabel.Position = UDim2.new(1, -75, 0, 10)
+    ValueLabel.BackgroundTransparency = 1
+    ValueLabel.Text = tostring(defaultVal)
+    ValueLabel.TextColor3 = Color3.fromRGB(138, 43, 226)
+    ValueLabel.Font = Enum.Font.GothamBold
+    ValueLabel.TextSize = 14
+    ValueLabel.Parent = SliderFrame
+    
+    local SliderBar = Instance.new("Frame")
+    SliderBar.Size = UDim2.new(1, -30, 0, 8)
+    SliderBar.Position = UDim2.new(0, 15, 1, -20)
+    SliderBar.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+    SliderBar.BorderSizePixel = 0
+    SliderBar.Parent = SliderFrame
+    
+    local SliderBarCorner = Instance.new("UICorner")
+    SliderBarCorner.CornerRadius = UDim.new(1, 0)
+    SliderBarCorner.Parent = SliderBar
+    
+    local SliderFill = Instance.new("Frame")
+    SliderFill.Size = UDim2.new((defaultVal - minVal) / (maxVal - minVal), 0, 1, 0)
+    SliderFill.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+    SliderFill.BorderSizePixel = 0
+    SliderFill.Parent = SliderBar
+    
+    local SliderFillCorner = Instance.new("UICorner")
+    SliderFillCorner.CornerRadius = UDim.new(1, 0)
+    SliderFillCorner.Parent = SliderFill
+    
+    local SliderButton = Instance.new("TextButton")
+    SliderButton.Size = UDim2.new(1, 0, 1, 0)
+    SliderButton.BackgroundTransparency = 1
+    SliderButton.Text = ""
+    SliderButton.Parent = SliderBar
+    
+    local dragging = false
+    
+    SliderButton.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
         end
-    end
-end)
-        
-        -- ===== PROSPECTING - AUTO DIG =====
-        if toggles.AutoDig then
-            pcall(function()
-                local character = player.Character
-                if character and character:FindFirstChild("Plastic Pan") then
-                    character["Plastic Pan"].Scripts.Collect:InvokeServer(1)
-                end
-            end)
-        end
-        
-        -- ===== PROSPECTING - AUTO PAN =====
-        if toggles.AutoPan then
-            pcall(function()
-                local character = player.Character
-                if character and character:FindFirstChild("Plastic Pan") then
-                    character["Plastic Pan"].Scripts.Pan:InvokeServer()
-                end
-            end)
-        end
-        
-        -- ===== PROSPECTING - AUTO SHAKE =====
-        if toggles.AutoShake then
-            pcall(function()
-                local character = player.Character
-                if character and character:FindFirstChild("Plastic Pan") then
-                    character["Plastic Pan"].Scripts.Shake:FireServer()
-                end
-            end)
-        end
-    end
-end)
-                
-
--- Fly functionality
-local flying = false
-local flySpeed = 50
-local bodyVelocity, bodyGyro
-local flyControlGui
-
-local function createFlyControls()
-    local controlFrame = Instance.new("Frame")
-    controlFrame.Name = "FlyControls"
-    controlFrame.Size = UDim2.new(0, 160, 0, 160)
-    controlFrame.Position = UDim2.new(0, 20, 1, -180)
-    controlFrame.BackgroundTransparency = 1
-    controlFrame.Parent = playerGui:WaitForChild("ArcheronHub")
-    controlFrame.Visible = false
-    
-    local joystickBg = Instance.new("Frame")
-    joystickBg.Size = UDim2.new(0, 120, 0, 120)
-    joystickBg.Position = UDim2.new(0, 0, 0, 0)
-    joystickBg.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-    joystickBg.BackgroundTransparency = 0.5
-    joystickBg.BorderSizePixel = 0
-    joystickBg.Parent = controlFrame
-    
-    local joystickCorner = Instance.new("UICorner")
-    joystickCorner.CornerRadius = UDim.new(1, 0)
-    joystickCorner.Parent = joystickBg
-    
-    local joystickKnob = Instance.new("Frame")
-    joystickKnob.Size = UDim2.new(0, 50, 0, 50)
-    joystickKnob.Position = UDim2.new(0.5, -25, 0.5, -25)
-    joystickKnob.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
-    joystickKnob.BackgroundTransparency = 0.3
-    joystickKnob.BorderSizePixel = 0
-    joystickKnob.Parent = joystickBg
-    
-    local knobCorner = Instance.new("UICorner")
-    knobCorner.CornerRadius = UDim.new(1, 0)
-    knobCorner.Parent = joystickKnob
-    
-    local upBtn = Instance.new("TextButton")
-    upBtn.Size = UDim2.new(0, 50, 0, 50)
-    upBtn.Position = UDim2.new(1, -60, 0, 0)
-    upBtn.Text = "▲"
-    upBtn.Font = Enum.Font.GothamBold
-    upBtn.TextSize = 20
-    upBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    upBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-    upBtn.BackgroundTransparency = 0.5
-    upBtn.BorderSizePixel = 0
-    upBtn.Parent = controlFrame
-    
-    local upCorner = Instance.new("UICorner")
-    upCorner.CornerRadius = UDim.new(1, 0)
-    upCorner.Parent = upBtn
-    
-    local downBtn = Instance.new("TextButton")
-    downBtn.Size = UDim2.new(0, 50, 0, 50)
-    downBtn.Position = UDim2.new(1, -60, 1, -50)
-    downBtn.Text = "▼"
-    downBtn.Font = Enum.Font.GothamBold
-    downBtn.TextSize = 20
-    downBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    downBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-    downBtn.BackgroundTransparency = 0.5
-    downBtn.BorderSizePixel = 0
-    downBtn.Parent = controlFrame
-    
-    local downCorner = Instance.new("UICorner")
-    downCorner.CornerRadius = UDim.new(1, 0)
-    downCorner.Parent = downBtn
-    
-    return controlFrame, joystickBg, joystickKnob, upBtn, downBtn
-end
-
-local function startFly()
-    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        local rootPart = player.Character.HumanoidRootPart
-        
-        bodyVelocity = Instance.new("BodyVelocity")
-        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
-        bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-        bodyVelocity.Parent = rootPart
-        
-        bodyGyro = Instance.new("BodyGyro")
-        bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
-        bodyGyro.P = 9e4
-        bodyGyro.Parent = rootPart
-        
-        flying = true
-        local controlFrame, joystickBg, joystickKnob, upBtn, downBtn = createFlyControls()
-        flyControlGui = controlFrame
-        
-        local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
-        if isMobile then
-            controlFrame.Visible = true
-        end
-        
-        local joystickActive = false
-        local joystickInput = Vector2.new(0, 0)
-        local upPressed = false
-        local downPressed = false
-        
-        joystickBg.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.Touch or 
-               input.UserInputType == Enum.UserInputType.MouseButton1 then
-                joystickActive = true
-            end
-        end)
-        
-        joystickBg.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.Touch or 
-               input.UserInputType == Enum.UserInputType.MouseButton1 then
-                joystickActive = false
-                joystickInput = Vector2.new(0, 0)
-                joystickKnob.Position = UDim2.new(0.5, -25, 0.5, -25)
-            end
-        end)
-        
-        UserInputService.InputChanged:Connect(function(input)
-            if joystickActive and (input.UserInputType == Enum.UserInputType.Touch or 
-               input.UserInputType == Enum.UserInputType.MouseMovement) then
-                local center = joystickBg.AbsolutePosition + joystickBg.AbsoluteSize / 2
-                local mousePos = Vector2.new(input.Position.X, input.Position.Y)
-                local delta = mousePos - center
-                local distance = math.min(delta.Magnitude, 35)
-                local direction = delta.Unit
-                
-                joystickInput = direction * (distance / 35)
-                joystickKnob.Position = UDim2.new(0.5, direction.X * distance - 25, 0.5, direction.Y * distance - 25)
-            end
-        end)
-        
-        upBtn.MouseButton1Down:Connect(function() upPressed = true end)
-        upBtn.MouseButton1Up:Connect(function() upPressed = false end)
-        downBtn.MouseButton1Down:Connect(function() downPressed = true end)
-        downBtn.MouseButton1Up:Connect(function() downPressed = false end)
-        
-        spawn(function()
-            local camera = workspace.CurrentCamera
-            while flying and toggles.Fly do
-                local moveDirection = Vector3.new(0, 0, 0)
-                
-                if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-                    moveDirection = moveDirection + (camera.CFrame.LookVector)
-                end
-                if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-                    moveDirection = moveDirection - (camera.CFrame.LookVector)
-                end
-                if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-                    moveDirection = moveDirection - (camera.CFrame.RightVector)
-                end
-                if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-                    moveDirection = moveDirection + (camera.CFrame.RightVector)
-                end
-                if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-                    moveDirection = moveDirection + Vector3.new(0, 1, 0)
-                end
-                if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-                    moveDirection = moveDirection - Vector3.new(0, 1, 0)
-                end
-                
-                if joystickInput.Magnitude > 0 then
-                    local forward = camera.CFrame.LookVector * -joystickInput.Y
-                    local right = camera.CFrame.RightVector * joystickInput.X
-                    moveDirection = moveDirection + forward + right
-                end
-                
-                if upPressed then
-                    moveDirection = moveDirection + Vector3.new(0, 1, 0)
-                end
-                if downPressed then
-                    moveDirection = moveDirection - Vector3.new(0, 1, 0)
-                end
-                
-                if bodyVelocity and bodyGyro then
-                    bodyVelocity.Velocity = moveDirection * flySpeed
-                    bodyGyro.CFrame = camera.CFrame
-                end
-                
-                wait()
-            end
-        end)
-    end
-end
-
-local function stopFly()
-    flying = false
-    if bodyVelocity then
-        bodyVelocity:Destroy()
-        bodyVelocity = nil
-    end
-    if bodyGyro then
-        bodyGyro:Destroy()
-        bodyGyro = nil
-    end
-    if flyControlGui then
-        flyControlGui:Destroy()
-        flyControlGui = nil
-    end
-end
-
--- Noclip functionality
-spawn(function()
-    while true do
-        if toggles.Noclip and player.Character then
-            for _, part in pairs(player.Character:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = false
-                end
-            end
-        end
-        wait(0.1)
-    end
-end)
-
--- WalkSpeed functionality
-spawn(function()
-    while true do
-        if player.Character and player.Character:FindFirstChild("Humanoid") then
-            player.Character.Humanoid.WalkSpeed = walkSpeedValue
-        end
-        wait(0.1)
-    end
-end)
-
--- ScreenGui
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "ArcheronHub"
-screenGui.Parent = playerGui
-screenGui.ResetOnSpawn = false
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
--- Toggle Frame
-local toggleFrame = Instance.new("Frame")
-toggleFrame.Size = UDim2.new(0, 200, 0, 50)
-toggleFrame.Position = UDim2.new(0.5, -100, 0, 20)
-toggleFrame.BackgroundColor3 = Color3.fromRGB(15, 20, 15)
-toggleFrame.BackgroundTransparency = 0.1
-toggleFrame.BorderSizePixel = 0
-toggleFrame.Parent = screenGui
-toggleFrame.ZIndex = 10
-toggleFrame.Active = true
-
-local toggleCorner = Instance.new("UICorner")
-toggleCorner.CornerRadius = UDim.new(0, 25)
-toggleCorner.Parent = toggleFrame
-
-local toggleStroke = Instance.new("UIStroke")
-toggleStroke.Color = Color3.fromRGB(80, 80, 85)
-toggleStroke.Thickness = 1.5
-toggleStroke.Transparency = 0.3
-toggleStroke.Parent = toggleFrame
-
-local dragIcon = Instance.new("TextLabel")
-dragIcon.Size = UDim2.new(0, 35, 1, 0)
-dragIcon.Position = UDim2.new(0, 5, 0, 0)
-dragIcon.Text = "⊕"
-dragIcon.Font = Enum.Font.GothamBold
-dragIcon.TextSize = 24
-dragIcon.TextColor3 = Color3.fromRGB(200, 200, 200)
-dragIcon.BackgroundTransparency = 1
-dragIcon.Parent = toggleFrame
-
-local lightningIcon = Instance.new("TextLabel")
-lightningIcon.Size = UDim2.new(0, 30, 1, 0)
-lightningIcon.Position = UDim2.new(0, 40, 0, 0)
-lightningIcon.Text = "⚡"
-lightningIcon.Font = Enum.Font.GothamBold
-lightningIcon.TextSize = 20
-lightningIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
-lightningIcon.BackgroundTransparency = 1
-lightningIcon.Parent = toggleFrame
-
-local toggleTitle = Instance.new("TextLabel")
-toggleTitle.Size = UDim2.new(0, 120, 1, 0)
-toggleTitle.Position = UDim2.new(0, 75, 0, 0)
-toggleTitle.Text = "Archeron - Hub"
-toggleTitle.Font = Enum.Font.GothamBold
-toggleTitle.TextSize = 15
-toggleTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-toggleTitle.BackgroundTransparency = 1
-toggleTitle.TextXAlignment = Enum.TextXAlignment.Left
-toggleTitle.Parent = toggleFrame
-
--- Main Frame
-local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 550, 0, 380)
-mainFrame.Position = UDim2.new(0.5, -275, 0.5, -190)
-mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-mainFrame.BorderSizePixel = 0
-mainFrame.Visible = false
-mainFrame.Active = true
-mainFrame.Parent = screenGui
-
-local mainCorner = Instance.new("UICorner")
-mainCorner.CornerRadius = UDim.new(0, 12)
-mainCorner.Parent = mainFrame
-
--- Header
-local header = Instance.new("Frame")
-header.Size = UDim2.new(1, 0, 0, 50)
-header.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-header.BorderSizePixel = 0
-header.Active = true
-header.Parent = mainFrame
-
-local headerCorner = Instance.new("UICorner")
-headerCorner.CornerRadius = UDim.new(0, 12)
-headerCorner.Parent = header
-
-local headerCover = Instance.new("Frame")
-headerCover.Size = UDim2.new(1, 0, 0, 12)
-headerCover.Position = UDim2.new(0, 0, 1, -12)
-headerCover.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-headerCover.BorderSizePixel = 0
-headerCover.Parent = header
-
-local logoIcon = Instance.new("ImageLabel")
-logoIcon.Size = UDim2.new(0, 30, 0, 30)
-logoIcon.Position = UDim2.new(0, 12, 0.5, -15)
-logoIcon.BackgroundTransparency = 1
-logoIcon.BorderSizePixel = 0
-logoIcon.Image = "rbxassetid://139400776308881"
-logoIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
-logoIcon.ScaleType = Enum.ScaleType.Fit
-logoIcon.ZIndex = 2
-logoIcon.Parent = header
-
-local logoCorner = Instance.new("UICorner")
-logoCorner.CornerRadius = UDim.new(0, 8)
-logoCorner.Parent = logoIcon
-
--- Glow Layer 1 (dalam)
-local glow1 = Instance.new("Frame")
-glow1.Size = UDim2.new(0, 36, 0, 36)
-glow1.Position = UDim2.new(0, 9, 0, 7)
-glow1.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
-glow1.BackgroundTransparency = 0.5
-glow1.BorderSizePixel = 0
-glow1.ZIndex = 1
-glow1.Parent = header
-
-local glow1Corner = Instance.new("UICorner")
-glow1Corner.CornerRadius = UDim.new(0, 9)
-glow1Corner.Parent = glow1
-
--- Glow Layer 2 (luar)
-local glow2 = Instance.new("Frame")
-glow2.Size = UDim2.new(0, 42, 0, 42)
-glow2.Position = UDim2.new(0, 6, 0, 4)
-glow2.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
-glow2.BackgroundTransparency = 0.8
-glow2.BorderSizePixel = 0
-glow2.ZIndex = 0
-glow2.Parent = header
-
-local glow2Corner = Instance.new("UICorner")
-glow2Corner.CornerRadius = UDim.new(0, 11)
-glow2Corner.Parent = glow2
-
--- Pulsing animation
-spawn(function()
-    while glow1 and glow1.Parent do
-        TweenService:Create(glow1, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-            BackgroundTransparency = 0.3
-        }):Play()
-        TweenService:Create(glow2, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-            BackgroundTransparency = 0.6,
-            Size = UDim2.new(0, 46, 0, 46),
-            Position = UDim2.new(0, 4, 0, 2)
-        }):Play()
-        wait(1.5)
-        
-        TweenService:Create(glow1, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-            BackgroundTransparency = 0.5
-        }):Play()
-        TweenService:Create(glow2, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-            BackgroundTransparency = 0.85,
-            Size = UDim2.new(0, 42, 0, 42),
-            Position = UDim2.new(0, 6, 0, 4)
-        }):Play()
-        wait(1.5)
-    end
-end)
-
-local titleLabel = Instance.new("TextLabel")
-titleLabel.Size = UDim2.new(0, 180, 0, 22)
-titleLabel.Position = UDim2.new(0, 50, 0, 7)
-titleLabel.Text = gameConfig.name
-titleLabel.Font = Enum.Font.GothamBold
-titleLabel.TextSize = 18
-titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-titleLabel.BackgroundTransparency = 1
-titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-titleLabel.Parent = header
-
-local subtitleLabel = Instance.new("TextLabel")
-subtitleLabel.Size = UDim2.new(0, 280, 0, 16)
-subtitleLabel.Position = UDim2.new(0, 50, 0, 28)
-subtitleLabel.Text = "Archeron Hub"
-subtitleLabel.Font = Enum.Font.Gotham
-subtitleLabel.TextSize = 11
-subtitleLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
-subtitleLabel.BackgroundTransparency = 1
-subtitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-subtitleLabel.Parent = header
-
-local function createControlButton(icon, position, color)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 30, 0, 30)
-    btn.Position = position
-    btn.Text = icon
-    btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 16
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.BackgroundColor3 = color
-    btn.BackgroundTransparency = 0.7
-    btn.BorderSizePixel = 0
-    btn.Parent = header
-    
-    local btnCorner = Instance.new("UICorner")
-    btnCorner.CornerRadius = UDim.new(0, 8)
-    btnCorner.Parent = btn
-    
-    btn.MouseEnter:Connect(function()
-        btn.BackgroundTransparency = 0.3
     end)
     
-    btn.MouseLeave:Connect(function()
-        btn.BackgroundTransparency = 0.7
+    SliderButton.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
     end)
     
-    return btn
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local pos = (input.Position.X - SliderBar.AbsolutePosition.X) / SliderBar.AbsoluteSize.X
+            pos = math.clamp(pos, 0, 1)
+            
+            local value = math.floor(minVal + (maxVal - minVal) * pos)
+            featureStates[featureKey] = value
+            ValueLabel.Text = tostring(value)
+            
+            TweenService:Create(SliderFill, TweenInfo.new(0.1), {Size = UDim2.new(pos, 0, 1, 0)}):Play()
+        end
+    end)
 end
 
-local minimizeBtn = createControlButton("-", UDim2.new(1, -120, 0.5, -15), Color3.fromRGB(60, 60, 65))
-local maximizeBtn = createControlButton("⛶", UDim2.new(1, -80, 0.5, -15), Color3.fromRGB(60, 60, 65))
-local closeBtn = createControlButton("X", UDim2.new(1, -40, 0.5, -15), Color3.fromRGB(220, 50, 50))
+-- ========================================
+-- MENU SYSTEM
+-- ========================================
 
--- Sidebar
-local sidebar = Instance.new("ScrollingFrame")
-sidebar.Size = UDim2.new(0, 180, 1, -50)
-sidebar.Position = UDim2.new(0, 0, 0, 50)
-sidebar.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-sidebar.BorderSizePixel = 0
-sidebar.ScrollBarThickness = 4
-sidebar.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 105)
-sidebar.CanvasSize = UDim2.new(0, 0, 0, 0)
-sidebar.AutomaticCanvasSize = Enum.AutomaticSize.Y
-sidebar.ScrollingDirection = Enum.ScrollingDirection.Y
-sidebar.Parent = mainFrame
-
-local sidebarList = Instance.new("UIListLayout")
-sidebarList.SortOrder = Enum.SortOrder.LayoutOrder
-sidebarList.Padding = UDim.new(0, 4)
-sidebarList.Parent = sidebar
-
-local sidebarPadding = Instance.new("UIPadding")
-sidebarPadding.PaddingTop = UDim.new(0, 10)
-sidebarPadding.PaddingLeft = UDim.new(0, 10)
-sidebarPadding.PaddingRight = UDim.new(0, 10)
-sidebarPadding.PaddingBottom = UDim.new(0, 10)
-sidebarPadding.Parent = sidebar
-
--- Content area
-local contentFrame = Instance.new("ScrollingFrame")
-contentFrame.Size = UDim2.new(1, -180, 1, -50)
-contentFrame.Position = UDim2.new(0, 180, 0, 50)
-contentFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-contentFrame.BorderSizePixel = 0
-contentFrame.ScrollBarThickness = 5
-contentFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 105)
-contentFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-contentFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
-contentFrame.ScrollingDirection = Enum.ScrollingDirection.Y
-contentFrame.Parent = mainFrame
-
-local contentPadding = Instance.new("UIPadding")
-contentPadding.PaddingTop = UDim.new(0, 15)
-contentPadding.PaddingLeft = UDim.new(0, 15)
-contentPadding.PaddingRight = UDim.new(0, 15)
-contentPadding.PaddingBottom = UDim.new(0, 15)
-contentPadding.Parent = contentFrame
-
-local contentList = Instance.new("UIListLayout")
-contentList.SortOrder = Enum.SortOrder.LayoutOrder
-contentList.Padding = UDim.new(0, 12)
-contentList.Parent = contentFrame
+local currentMenu = nil
+local menuButtons = {}
 
 local function clearContent()
-    for _, child in ipairs(contentFrame:GetChildren()) do
-        if child:IsA("Frame") or child:IsA("TextButton") then
+    for _, child in ipairs(ContentArea:GetChildren()) do
+        if child:IsA("Frame") and child.Name ~= "UIListLayout" and child.Name ~= "UIPadding" then
             child:Destroy()
         end
     end
 end
 
-local function createOwnerCard()
-    local card = Instance.new("Frame")
-    card.Size = UDim2.new(1, 0, 0, 80)
-    card.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-    card.BorderSizePixel = 0
-    card.Parent = contentFrame
+local function loadMenu(menuKey)
+    if currentMenu == menuKey then return end
+    currentMenu = menuKey
     
-    local cardCorner = Instance.new("UICorner")
-    cardCorner.CornerRadius = UDim.new(0, 10)
-    cardCorner.Parent = card
-    
-    local ownerTitle = Instance.new("TextLabel")
-    ownerTitle.Size = UDim2.new(1, -30, 0, 28)
-    ownerTitle.Position = UDim2.new(0, 15, 0, 15)
-    ownerTitle.Text = "Owner:"
-    ownerTitle.Font = Enum.Font.GothamBold
-    ownerTitle.TextSize = 16
-    ownerTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-    ownerTitle.BackgroundTransparency = 1
-    ownerTitle.TextXAlignment = Enum.TextXAlignment.Left
-    ownerTitle.Parent = card
-    
-    local ownerName = Instance.new("TextLabel")
-    ownerName.Size = UDim2.new(1, -30, 0, 24)
-    ownerName.Position = UDim2.new(0, 15, 0, 43)
-    ownerName.Text = "Archeron"
-    ownerName.Font = Enum.Font.GothamBold
-    ownerName.TextSize = 20
-    ownerName.TextColor3 = Color3.fromRGB(138, 43, 226)
-    ownerName.BackgroundTransparency = 1
-    ownerName.TextXAlignment = Enum.TextXAlignment.Left
-    ownerName.Parent = card
-end
-
-local function createFeatureButton(featureName, featureDesc, toggleKey, hasWarning, noteText)
-    local featureBtn = Instance.new("Frame")
-    local btnHeight = noteText and 110 or 65
-    featureBtn.Size = UDim2.new(1, 0, 0, btnHeight)
-    featureBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-    featureBtn.BorderSizePixel = 0
-    featureBtn.Parent = contentFrame
-    
-    local featureBtnCorner = Instance.new("UICorner")
-    featureBtnCorner.CornerRadius = UDim.new(0, 10)
-    featureBtnCorner.Parent = featureBtn
-    
-    local featureTitle = Instance.new("TextLabel")
-    featureTitle.Size = UDim2.new(1, -70, 0, 22)
-    featureTitle.Position = UDim2.new(0, 15, 0, 10)
-    featureTitle.Text = (hasWarning and "⚠ " or "") .. featureName
-    featureTitle.Font = Enum.Font.GothamBold
-    featureTitle.TextSize = 14
-    featureTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-    featureTitle.BackgroundTransparency = 1
-    featureTitle.TextXAlignment = Enum.TextXAlignment.Left
-    featureTitle.Parent = featureBtn
-    
-    local featureDescLabel = Instance.new("TextLabel")
-    featureDescLabel.Size = UDim2.new(1, -70, 0, 16)
-    featureDescLabel.Position = UDim2.new(0, 15, 0, 32)
-    featureDescLabel.Text = featureDesc
-    featureDescLabel.Font = Enum.Font.Gotham
-    featureDescLabel.TextSize = 11
-    featureDescLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
-    featureDescLabel.BackgroundTransparency = 1
-    featureDescLabel.TextXAlignment = Enum.TextXAlignment.Left
-    featureDescLabel.Parent = featureBtn
-    
-    if noteText then
-        local noteLabel = Instance.new("TextLabel")
-        noteLabel.Size = UDim2.new(1, -30, 0, 45)
-        noteLabel.Position = UDim2.new(0, 15, 0, 50)
-        noteLabel.Text = noteText
-        noteLabel.Font = Enum.Font.Gotham
-        noteLabel.TextSize = 9
-        noteLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
-        noteLabel.BackgroundTransparency = 1
-        noteLabel.TextXAlignment = Enum.TextXAlignment.Left
-        noteLabel.TextWrapped = true
-        noteLabel.Parent = featureBtn
+    -- Update button states
+    for key, btn in pairs(menuButtons) do
+        if key == menuKey then
+            btn.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+        else
+            btn.BackgroundColor3 = Color3.fromRGB(40, 100, 220)
+        end
     end
     
-    local toggleSwitch = Instance.new("TextButton")
-    toggleSwitch.Size = UDim2.new(0, 45, 0, 24)
-    toggleSwitch.Position = UDim2.new(1, -60, 0.5, -12)
-    toggleSwitch.Text = ""
-    toggleSwitch.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
-    toggleSwitch.BorderSizePixel = 0
-    toggleSwitch.Parent = featureBtn
-    
-    local switchCorner = Instance.new("UICorner")
-    switchCorner.CornerRadius = UDim.new(1, 0)
-    switchCorner.Parent = toggleSwitch
-    
-    local switchKnob = Instance.new("Frame")
-    switchKnob.Size = UDim2.new(0, 18, 0, 18)
-    switchKnob.Position = UDim2.new(0, 3, 0.5, -9)
-    switchKnob.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
-    switchKnob.BorderSizePixel = 0
-    switchKnob.Parent = toggleSwitch
-    
-    local knobCorner = Instance.new("UICorner")
-    knobCorner.CornerRadius = UDim.new(1, 0)
-    knobCorner.Parent = switchKnob
-    
-    if toggleKey and toggles[toggleKey] then
-        toggleSwitch.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
-        switchKnob.Position = UDim2.new(1, -21, 0.5, -9)
-    end
-    
-    toggleSwitch.MouseButton1Click:Connect(function()
-        if toggleKey then
-            toggles[toggleKey] = not toggles[toggleKey]
-            
-            if toggles[toggleKey] then
-                toggleSwitch.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
-                TweenService:Create(switchKnob, TweenInfo.new(0.2), {
-                    Position = UDim2.new(1, -21, 0.5, -9)
-                }):Play()
-                
-                if toggleKey == "Fly" then
-                    startFly()
-                end
-            else
-                toggleSwitch.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
-                TweenService:Create(switchKnob, TweenInfo.new(0.2), {
-                    Position = UDim2.new(0, 3, 0.5, -9)
-                }):Play()
-                
-                if toggleKey == "Fly" then
-                    stopFly()
-                end
-                if toggleKey == "Noclip" and player.Character then
-                    for _, part in pairs(player.Character:GetDescendants()) do
-                        if part:IsA("BasePart") then
-                            part.CanCollide = true
-                        end
-                    end
-                end
-            end
-        end
-    end)
-end
-
-local function createWalkSpeedSlider()
-    local sliderFrame = Instance.new("Frame")
-    sliderFrame.Size = UDim2.new(1, 0, 0, 85)
-    sliderFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-    sliderFrame.BorderSizePixel = 0
-    sliderFrame.Parent = contentFrame
-    
-    local sliderCorner = Instance.new("UICorner")
-    sliderCorner.CornerRadius = UDim.new(0, 10)
-    sliderCorner.Parent = sliderFrame
-    
-    local sliderTitle = Instance.new("TextLabel")
-    sliderTitle.Size = UDim2.new(1, -30, 0, 22)
-    sliderTitle.Position = UDim2.new(0, 15, 0, 10)
-    sliderTitle.Text = "WalkSpeed"
-    sliderTitle.Font = Enum.Font.GothamBold
-    sliderTitle.TextSize = 14
-    sliderTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-    sliderTitle.BackgroundTransparency = 1
-    sliderTitle.TextXAlignment = Enum.TextXAlignment.Left
-    sliderTitle.Parent = sliderFrame
-    
-    local sliderValue = Instance.new("TextLabel")
-    sliderValue.Size = UDim2.new(0, 60, 0, 22)
-    sliderValue.Position = UDim2.new(1, -75, 0, 10)
-    sliderValue.Text = tostring(walkSpeedValue)
-    sliderValue.Font = Enum.Font.GothamBold
-    sliderValue.TextSize = 14
-    sliderValue.TextColor3 = Color3.fromRGB(138, 43, 226)
-    sliderValue.BackgroundTransparency = 1
-    sliderValue.TextXAlignment = Enum.TextXAlignment.Right
-    sliderValue.Parent = sliderFrame
-    
-    local sliderDesc = Instance.new("TextLabel")
-    sliderDesc.Size = UDim2.new(1, -30, 0, 16)
-    sliderDesc.Position = UDim2.new(0, 15, 0, 32)
-    sliderDesc.Text = "Atur kecepatan berjalan"
-    sliderDesc.Font = Enum.Font.Gotham
-    sliderDesc.TextSize = 11
-    sliderDesc.TextColor3 = Color3.fromRGB(150, 150, 150)
-    sliderDesc.BackgroundTransparency = 1
-    sliderDesc.TextXAlignment = Enum.TextXAlignment.Left
-    sliderDesc.Parent = sliderFrame
-    
-    local sliderBg = Instance.new("Frame")
-    sliderBg.Size = UDim2.new(1, -30, 0, 6)
-    sliderBg.Position = UDim2.new(0, 15, 1, -20)
-    sliderBg.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
-    sliderBg.BorderSizePixel = 0
-    sliderBg.Parent = sliderFrame
-    
-    local sliderBgCorner = Instance.new("UICorner")
-    sliderBgCorner.CornerRadius = UDim.new(1, 0)
-    sliderBgCorner.Parent = sliderBg
-    
-    local sliderFill = Instance.new("Frame")
-    sliderFill.Size = UDim2.new((walkSpeedValue - 16) / (200 - 16), 0, 1, 0)
-    sliderFill.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
-    sliderFill.BorderSizePixel = 0
-    sliderFill.Parent = sliderBg
-    
-    local sliderFillCorner = Instance.new("UICorner")
-    sliderFillCorner.CornerRadius = UDim.new(1, 0)
-    sliderFillCorner.Parent = sliderFill
-    
-    local sliderKnob = Instance.new("Frame")
-    sliderKnob.Size = UDim2.new(0, 16, 0, 16)
-    sliderKnob.Position = UDim2.new((walkSpeedValue - 16) / (200 - 16), -8, 0.5, -8)
-    sliderKnob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    sliderKnob.BorderSizePixel = 0
-    sliderKnob.Parent = sliderBg
-    
-    local sliderKnobCorner = Instance.new("UICorner")
-    sliderKnobCorner.CornerRadius = UDim.new(1, 0)
-    sliderKnobCorner.Parent = sliderKnob
-    
-    local draggingSlider = false
-    
-    sliderKnob.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or 
-           input.UserInputType == Enum.UserInputType.Touch then
-            draggingSlider = true
-        end
-    end)
-    
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or 
-           input.UserInputType == Enum.UserInputType.Touch then
-            draggingSlider = false
-        end
-    end)
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if draggingSlider and (input.UserInputType == Enum.UserInputType.MouseMovement or 
-           input.UserInputType == Enum.UserInputType.Touch) then
-            local mousePos = UserInputService:GetMouseLocation()
-            local sliderPos = sliderBg.AbsolutePosition.X
-            local sliderSize = sliderBg.AbsoluteSize.X
-            
-            local relative = math.clamp((mousePos.X - sliderPos) / sliderSize, 0, 1)
-            walkSpeedValue = math.floor(16 + (relative * (200 - 16)))
-            
-            sliderValue.Text = tostring(walkSpeedValue)
-            sliderFill.Size = UDim2.new(relative, 0, 1, 0)
-            sliderKnob.Position = UDim2.new(relative, -8, 0.5, -8)
-        end
-    end)
-    
-    sliderBg.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or 
-           input.UserInputType == Enum.UserInputType.Touch then
-            local mousePos = UserInputService:GetMouseLocation()
-            local sliderPos = sliderBg.AbsolutePosition.X
-            local sliderSize = sliderBg.AbsoluteSize.X
-            
-            local relative = math.clamp((mousePos.X - sliderPos) / sliderSize, 0, 1)
-            walkSpeedValue = math.floor(16 + (relative * (200 - 16)))
-            
-            sliderValue.Text = tostring(walkSpeedValue)
-            sliderFill.Size = UDim2.new(relative, 0, 1, 0)
-            sliderKnob.Position = UDim2.new(relative, -8, 0.5, -8)
-        end
-    end)
-end
-
-local function showContentByCategory(categoryName)
+    -- Clear and load new content
     clearContent()
     
-    if categoryName == "Information" then
-        createOwnerCard()
-    else
-        local features = gameConfig.features[categoryName]
-        if features then
-            for _, feature in ipairs(features) do
-                createFeatureButton(feature.name, feature.desc, feature.key, feature.warning, feature.note)
-            end
-            
-            if categoryName == "Player" then
-                createWalkSpeedSlider()
+    local features = currentConfig.features[menuKey]
+    if features then
+        for _, feature in ipairs(features) do
+            if feature.type == "toggle" then
+                createToggleFeature(feature.name, ContentArea)
+            elseif feature.type == "slider" then
+                createSliderFeature(feature.name, feature.min, feature.max, feature.default, ContentArea)
             end
         end
     end
+    
+    -- Update canvas size
+    task.wait(0.1)
+    ContentArea.CanvasSize = UDim2.new(0, 0, 0, ContentList.AbsoluteContentSize.Y + 20)
 end
 
-local currentSelectedButton = nil
-local function createSidebarButton(icon, text, categoryName, order)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, 0, 0, 36)
-    btn.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-    btn.BackgroundTransparency = 1
-    btn.BorderSizePixel = 0
-    btn.Text = ""
-    btn.LayoutOrder = order
-    btn.Parent = sidebar
+-- Create menu buttons
+for i, menuKey in ipairs(currentConfig.menus) do
+    local MenuButton = Instance.new("TextButton")
+    MenuButton.Name = menuKey
+    MenuButton.Size = UDim2.new(1, -10, 0, 45)
+    MenuButton.BackgroundColor3 = Color3.fromRGB(45, 45, 65) -- Dark purple/gray
+    MenuButton.BorderSizePixel = 0
+    MenuButton.Text = getText(menuKey)
+    MenuButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    MenuButton.Font = Enum.Font.GothamBold
+    MenuButton.TextSize = 14
+    MenuButton.LayoutOrder = i
+    MenuButton.Parent = MenuSidebar
     
-    local btnCorner = Instance.new("UICorner")
-    btnCorner.CornerRadius = UDim.new(0, 8)
-    btnCorner.Parent = btn
+    local MenuButtonCorner = Instance.new("UICorner")
+    MenuButtonCorner.CornerRadius = UDim.new(0, 8)
+    MenuButtonCorner.Parent = MenuButton
     
-    local iconLabel = Instance.new("TextLabel")
-    iconLabel.Size = UDim2.new(0, 28, 1, 0)
-    iconLabel.Position = UDim2.new(0, 5, 0, 0)
-    iconLabel.Text = icon
-    iconLabel.Font = Enum.Font.GothamBold
-    iconLabel.TextSize = 15
-    iconLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
-    iconLabel.BackgroundTransparency = 1
-    iconLabel.Parent = btn
+    menuButtons[menuKey] = MenuButton
     
-    local textLabel = Instance.new("TextLabel")
-    textLabel.Size = UDim2.new(1, -38, 1, 0)
-    textLabel.Position = UDim2.new(0, 38, 0, 0)
-    textLabel.Text = text
-    textLabel.Font = Enum.Font.Gotham
-    textLabel.TextSize = 13
-    textLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-    textLabel.BackgroundTransparency = 1
-    textLabel.TextXAlignment = Enum.TextXAlignment.Left
-    textLabel.Parent = btn
+    MenuButton.MouseButton1Click:Connect(function()
+        loadMenu(menuKey)
+    end)
     
-    btn.MouseEnter:Connect(function()
-        if currentSelectedButton ~= btn then
-            btn.BackgroundTransparency = 0.5
+    -- Hover effects
+    MenuButton.MouseEnter:Connect(function()
+        if currentMenu ~= menuKey then
+            TweenService:Create(MenuButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 85)}):Play()
         end
     end)
     
-    btn.MouseLeave:Connect(function()
-        if currentSelectedButton ~= btn then
-            btn.BackgroundTransparency = 1
+    MenuButton.MouseLeave:Connect(function()
+        if currentMenu ~= menuKey then
+            TweenService:Create(MenuButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(45, 45, 65)}):Play()
         end
     end)
-    
-    btn.MouseButton1Click:Connect(function()
-        if currentSelectedButton then
-            currentSelectedButton.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-            currentSelectedButton.BackgroundTransparency = 1
-        end
-        
-        btn.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
-        btn.BackgroundTransparency = 0.7
-        currentSelectedButton = btn
-        
-        showContentByCategory(categoryName)
-    end)
 end
 
-local menuOrder = 1
-createSidebarButton("ℹ", "Information", "Information", menuOrder)
-menuOrder = menuOrder + 1
+-- Add padding to menu sidebar
+local SidebarPadding = Instance.new("UIPadding")
+SidebarPadding.PaddingTop = UDim.new(0, 5)
+SidebarPadding.PaddingLeft = UDim.new(0, 5)
+SidebarPadding.PaddingRight = UDim.new(0, 5)
+SidebarPadding.Parent = MenuSidebar
 
-if gameConfig.features.Main then
-    createSidebarButton("👁", "Main", "Main", menuOrder)
-    menuOrder = menuOrder + 1
+-- Load first menu by default
+if #currentConfig.menus > 0 then
+    loadMenu(currentConfig.menus[1])
 end
 
-if gameConfig.features.Player then
-    createSidebarButton("⚙", "Player", "Player", menuOrder)
-    menuOrder = menuOrder + 1
+-- ========================================
+-- TOGGLE BUTTON (DRAGGABLE)
+-- ========================================
+
+local ToggleFrame = Instance.new("Frame")
+ToggleFrame.Name = "ToggleFrame"
+ToggleFrame.Size = UDim2.new(0, 60, 0, 60)
+ToggleFrame.Position = UDim2.new(0, 20, 0, 20)
+ToggleFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+ToggleFrame.BorderSizePixel = 0
+ToggleFrame.Active = true
+ToggleFrame.ZIndex = 10
+ToggleFrame.Parent = ScreenGui
+
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(0, 12)
+ToggleCorner.Parent = ToggleFrame
+
+local ToggleBorder = Instance.new("UIStroke")
+ToggleBorder.Name = "Border"
+ToggleBorder.Color = Color3.fromRGB(138, 43, 226)
+ToggleBorder.Thickness = 2
+ToggleBorder.Transparency = 0
+ToggleBorder.Parent = ToggleFrame
+
+local ToggleGlow = Instance.new("ImageLabel")
+ToggleGlow.Name = "GlowEffect"
+ToggleGlow.Size = UDim2.new(1, 30, 1, 30)
+ToggleGlow.Position = UDim2.new(0.5, 0, 0.5, 0)
+ToggleGlow.AnchorPoint = Vector2.new(0.5, 0.5)
+ToggleGlow.BackgroundTransparency = 1
+ToggleGlow.Image = "rbxasset://textures/ui/Glow.png"
+ToggleGlow.ImageColor3 = Color3.fromRGB(138, 43, 226)
+ToggleGlow.ImageTransparency = 1
+ToggleGlow.ScaleType = Enum.ScaleType.Slice
+ToggleGlow.SliceCenter = Rect.new(12, 12, 12, 12)
+ToggleGlow.ZIndex = 9
+ToggleGlow.Parent = ToggleFrame
+
+local ToggleLogo = Instance.new("ImageLabel")
+ToggleLogo.Name = "ToggleLogo"
+ToggleLogo.Size = UDim2.new(0, 40, 0, 40)
+ToggleLogo.Position = UDim2.new(0.5, -20, 0.5, -20)
+ToggleLogo.BackgroundTransparency = 1
+ToggleLogo.Image = LOGO_TEXTURE_ID
+ToggleLogo.ScaleType = Enum.ScaleType.Fit
+ToggleLogo.ZIndex = 11
+ToggleLogo.Parent = ToggleFrame
+
+local LogoToggleCorner = Instance.new("UICorner")
+LogoToggleCorner.CornerRadius = UDim.new(0, 12)
+LogoToggleCorner.Parent = ToggleLogo
+
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Name = "ToggleButton"
+ToggleButton.Size = UDim2.new(1, 0, 1, 0)
+ToggleButton.Position = UDim2.new(0, 0, 0, 0)
+ToggleButton.BackgroundTransparency = 1
+ToggleButton.Text = ""
+ToggleButton.ZIndex = 12
+ToggleButton.Parent = ToggleFrame
+
+-- Dragging toggle button
+local toggleDragging = false
+local toggleDragInput
+local toggleDragStart
+local toggleStartPos
+
+local function updateToggle(input)
+    local delta = input.Position - toggleDragStart
+    ToggleFrame.Position = UDim2.new(toggleStartPos.X.Scale, toggleStartPos.X.Offset + delta.X, toggleStartPos.Y.Scale, toggleStartPos.Y.Offset + delta.Y)
 end
 
-showContentByCategory("Information")
-
-local draggingToggle = false
-local dragStartToggle = Vector2.new(0, 0)
-local startPosToggle = UDim2.new(0, 0, 0, 0)
-
-dragIcon.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or 
-       input.UserInputType == Enum.UserInputType.Touch then
-        draggingToggle = true
-        dragStartToggle = input.Position
-        startPosToggle = toggleFrame.Position
+ToggleButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        toggleDragging = true
+        toggleDragStart = input.Position
+        toggleStartPos = ToggleFrame.Position
         
         input.Changed:Connect(function()
             if input.UserInputState == Enum.UserInputState.End then
-                draggingToggle = false
+                toggleDragging = false
             end
         end)
     end
 end)
 
-UserInputService.InputChanged:Connect(function(input)
-    if draggingToggle and (input.UserInputType == Enum.UserInputType.MouseMovement or 
-       input.UserInputType == Enum.UserInputType.Touch) then
-        local delta = input.Position - dragStartToggle
-        toggleFrame.Position = UDim2.new(
-            startPosToggle.X.Scale,
-            startPosToggle.X.Offset + delta.X,
-            startPosToggle.Y.Scale,
-            startPosToggle.Y.Offset + delta.Y
-        )
+ToggleButton.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        toggleDragInput = input
     end
 end)
 
-local dragging = false
-local dragStart = Vector2.new(0, 0)
-local startPos = UDim2.new(0, 0, 0, 0)
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if input == toggleDragInput and toggleDragging then
+        updateToggle(input)
+    end
+end)
 
-header.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or 
-       input.UserInputType == Enum.UserInputType.Touch then
+-- Dragging main frame
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+HeaderFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
         dragStart = input.Position
-        startPos = mainFrame.Position
+        startPos = MainFrame.Position
         
         input.Changed:Connect(function()
             if input.UserInputState == Enum.UserInputState.End then
@@ -1138,87 +877,95 @@ header.InputBegan:Connect(function(input)
     end
 end)
 
-UserInputService.InputChanged:Connect(function(input)
-    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or 
-       input.UserInputType == Enum.UserInputType.Touch) then
-        local delta = input.Position - dragStart
-        mainFrame.Position = UDim2.new(
-            startPos.X.Scale,
-            startPos.X.Offset + delta.X,
-            startPos.Y.Scale,
-            startPos.Y.Offset + delta.Y
-        )
+HeaderFrame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
     end
 end)
 
-local function toggleGUI()
-    mainFrame.Visible = not mainFrame.Visible
-    if mainFrame.Visible then
-        mainFrame.Size = UDim2.new(0, 0, 0, 0)
-        TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0, 550, 0, 380)
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
+
+-- Toggle functionality
+local isOpen = true
+
+ToggleButton.MouseButton1Click:Connect(function()
+    if toggleDragging then return end
+    
+    isOpen = not isOpen
+    
+    local tweenInfo = TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    
+    if isOpen then
+        MainFrame.Visible = true
+        TweenService:Create(MainFrame, tweenInfo, {
+            Size = UDim2.new(0, 700, 0, 450),
+            Position = UDim2.new(0.5, -350, 0.5, -225)
         }):Play()
+        
+        TweenService:Create(ToggleGlow, TweenInfo.new(0.3), {ImageTransparency = 0.5}):Play()
     else
-        TweenService:Create(mainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
-            Size = UDim2.new(0, 0, 0, 0)
-        }):Play()
-    end
-end
-
-local clickStartTime = 0
-toggleFrame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or 
-       input.UserInputType == Enum.UserInputType.Touch then
-        clickStartTime = tick()
-    end
-end)
-
-toggleFrame.InputEnded:Connect(function(input)
-    if (input.UserInputType == Enum.UserInputType.MouseButton1 or 
-       input.UserInputType == Enum.UserInputType.Touch) and 
-       not draggingToggle and (tick() - clickStartTime) < 0.3 then
-        toggleGUI()
+        local closeTween = TweenService:Create(MainFrame, tweenInfo, {
+            Size = UDim2.new(0, 0, 0, 0),
+            Position = UDim2.new(0.5, 0, 0.5, 0)
+        })
+        closeTween:Play()
+        
+        TweenService:Create(ToggleGlow, TweenInfo.new(0.3), {ImageTransparency = 1}):Play()
+        
+        closeTween.Completed:Connect(function()
+            if not isOpen then
+                MainFrame.Visible = false
+            end
+        end)
     end
 end)
 
-closeBtn.MouseButton1Click:Connect(function()
-    TweenService:Create(mainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
-        Size = UDim2.new(0, 0, 0, 0)
-    }):Play()
-    wait(0.2)
-    mainFrame.Visible = false
-end)
-
-minimizeBtn.MouseButton1Click:Connect(function()
-    TweenService:Create(mainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-        Size = UDim2.new(0, 550, 0, 50)
-    }):Play()
-end)
-
-maximizeBtn.MouseButton1Click:Connect(function()
-    TweenService:Create(mainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-        Size = UDim2.new(0, 550, 0, 380)
-    }):Play()
-end)
-
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed and input.KeyCode == Enum.KeyCode.R then
-        toggleGUI()
+-- Hover effects
+ToggleButton.MouseEnter:Connect(function()
+    TweenService:Create(ToggleFrame, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(45, 45, 65)}):Play()
+    
+    if isOpen then
+        TweenService:Create(ToggleGlow, TweenInfo.new(0.2), {ImageTransparency = 0.3}):Play()
+    else
+        TweenService:Create(ToggleGlow, TweenInfo.new(0.2), {ImageTransparency = 0.6}):Play()
     end
 end)
 
-toggleFrame.MouseEnter:Connect(function()
-    TweenService:Create(toggleFrame, TweenInfo.new(0.2), {
-        BackgroundTransparency = 0
-    }):Play()
+ToggleButton.MouseLeave:Connect(function()
+    TweenService:Create(ToggleFrame, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(30, 30, 45)}):Play()
+    
+    if isOpen then
+        TweenService:Create(ToggleGlow, TweenInfo.new(0.2), {ImageTransparency = 0.5}):Play()
+    else
+        TweenService:Create(ToggleGlow, TweenInfo.new(0.2), {ImageTransparency = 1}):Play()
+    end
 end)
 
-toggleFrame.MouseLeave:Connect(function()
-    TweenService:Create(toggleFrame, TweenInfo.new(0.2), {
-        BackgroundTransparency = 0.1
-    }):Play()
-end)
+-- ========================================
+-- OPENING ANIMATION
+-- ========================================
 
-print("✅ Archeron - Hub loaded successfully!")
-print("🎮 Game: " .. gameConfig.name)
-print("📋 Press R to toggle menu")
+MainFrame.Size = UDim2.new(0, 0, 0, 0)
+MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+
+wait(0.1)
+
+TweenService:Create(MainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+    Size = UDim2.new(0, 700, 0, 450),
+    Position = UDim2.new(0.5, -350, 0.5, -225)
+}):Play()
+
+TweenService:Create(ToggleGlow, TweenInfo.new(0.5), {ImageTransparency = 0.5}):Play()
+
+-- ========================================
+-- LAUNCH NOTIFICATION
+-- ========================================
+
+wait(0.5)
+createNotification(getText("hubActive"), getText("loadSuccess"), 5)
+
+print("Archeron Hub loaded successfully with language: " .. currentLanguage)
