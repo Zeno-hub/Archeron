@@ -153,9 +153,9 @@ local gameConfigs = {
             menuInfo = {}
         },
         -- ⬇️ REMOTE EVENT SETTINGS UNTUK GAME INI
-        remotePath = nil, -- ⬅️ Path remote event
-        remoteArgs = nil
-            return {"Axe", true} -- Arguments untuk game ini
+        remotePath = "ReplicatedStorage.Events.PickUp", -- ⬅️ Path remote event
+        remoteArgs = function()
+            return {"Stick", true} -- Arguments untuk game ini
         end
     },
 }
