@@ -150,34 +150,20 @@ local gameConfigs = {
                 {name = "walkspeed", type = "slider", min = 16, max = 200, default = 16},
                 {name = "jumppower", type = "slider", min = 50, max = 300, default = 50},
             },
-            menuInfo = {
-                -- Info static, bisa dikustom
-            }
-        }
+            menuInfo = {}
+        },
+        -- ⬇️ REMOTE EVENT SETTINGS UNTUK GAME INI
+        remotePath = "ReplicatedStorage.Remotes.ChopTree", -- ⬅️ Path remote event
+        remoteArgs = function() 
+            return {"Axe", true} -- Arguments untuk game ini
+        end
     },
     
-    -- Game Example 2 (ganti dengan game ID lain)
-    [1234567890] = {
-        menus = {"menuMain", "menuMisc"},
-        features = {
-            menuMain = {
-                {name = "autoFarm", type = "toggle"},
-                {name = "autoCollect", type = "toggle"},
-            },
-            menuMisc = {
-                {name = "esp", type = "toggle"},
-                {name = "infiniteJump", type = "toggle"},
-                {name = "godMode", type = "toggle"},
-            }
-        }
-    }
-}
 
 -- Get current game config
 local currentGameId = game.PlaceId
-local currentConfig = gameConfigs[currentGameId]
 
-if not currentConfig then
+    if not currentConfig then
     player:Kick("⚠️ Archeron Hub\n\nGame ini tidak didukung oleh Archeron Hub.\nSilakan gunakan di game yang didukung.")
     return
 end
@@ -193,6 +179,63 @@ local REMOTE_EVENT_NAME = "YourRemoteEvent"
 local function getRemoteArgs()
     return {}
 end
+
+-- ========================================
+-- REMOTE EVENT HANDLER
+-- ========================================
+
+local RemoteEvent = nil
+
+-- Function untuk connect ke remote event
+local function connectRemoteEvent()
+    if REMOTE_EVENT_PATH then
+        local success, result = pcall(function()
+            return game:GetService(REMOTE_EVENT_PATH:match("^(%w+)"))
+        end)
+        
+        if success and result then
+            -- Cari remote event berdasarkan path
+            local pathParts = {}
+            for part in REMOTE_EVENT_PATH:gmatch("[^.]+") do
+                table.insert(pathParts, part)
+            end
+            
+            local current = game
+            for _, part in ipairs(pathParts) do
+                current = current:FindFirstChild(part)
+                if not current then
+                    warn("❌ Remote Event Path tidak ditemukan: " .. REMOTE_EVENT_PATH)
+                    return nil
+                end
+            end
+            
+            RemoteEvent = current
+            print("✅ Remote Event connected: " .. REMOTE_EVENT_PATH)
+            return RemoteEvent
+        end
+    end
+    return nil
+end
+
+-- Function untuk fire remote event
+local function fireRemote(...)
+    if RemoteEvent then
+        local success, err = pcall(function()
+            if RemoteEvent:IsA("RemoteEvent") then
+                RemoteEvent:FireServer(...)
+            elseif RemoteEvent:IsA("RemoteFunction") then
+                RemoteEvent:InvokeServer(...)
+            end
+        end)
+        
+        if not success then
+            warn("❌ Error firing remote:", err)
+        end
+    end
+end
+
+-- Connect saat script load
+connectRemoteEvent()
 
 -- ========================================
 -- MAIN GUI
@@ -540,6 +583,8 @@ local function createToggleFeature(featureName, parent)
     ButtonCorner.CornerRadius = UDim.new(0, 8)
     ButtonCorner.Parent = ToggleButton
     
+     local loopConnection = nil
+    
     ToggleButton.MouseButton1Click:Connect(function()
         featureStates[featureKey] = not featureStates[featureKey]
         
@@ -547,10 +592,28 @@ local function createToggleFeature(featureName, parent)
             ToggleButton.Text = "ON"
             ToggleButton.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
             createNotification(getText(featureName), getText("statusEnabled"), 3)
+            
+            -- 🔥 AUTO FIRE REMOTE EVENT dengan LOOP
+            if RemoteEvent then
+                loopConnection = game:GetService("RunService").Heartbeat:Connect(function()
+                    if featureStates[featureKey] then
+                        local args = getRemoteArgs() -- Ambil arguments dari function
+                        fireRemote(table.unpack(args))
+                    end
+                end)
+                print("🔄 Auto loop started for: " .. featureName)
+            end
         else
             ToggleButton.Text = "OFF"
             ToggleButton.BackgroundColor3 = Color3.fromRGB(200, 100, 100)
             createNotification(getText(featureName), getText("statusDisabled"), 3)
+            
+            -- 🛑 STOP LOOP
+            if loopConnection then
+                loopConnection:Disconnect()
+                loopConnection = nil
+                print("⏹️ Auto loop stopped for: " .. featureName)
+            end
         end
     end)
 end
