@@ -587,7 +587,7 @@ local function createToggleFeature(featureName, parent)
     ButtonCorner.CornerRadius = UDim.new(0, 8)
     ButtonCorner.Parent = ToggleButton
     
-     local loopConnection = nil
+    local loopConnection = nil
     
     ToggleButton.MouseButton1Click:Connect(function()
         featureStates[featureKey] = not featureStates[featureKey]
@@ -597,12 +597,18 @@ local function createToggleFeature(featureName, parent)
             ToggleButton.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
             createNotification(getText(featureName), getText("statusEnabled"), 3)
             
-            -- 🔥 AUTO FIRE REMOTE EVENT dengan LOOP
-            if RemoteEvent then
+            -- 🔥 AUTO FIRE REMOTE EVENT dengan LOOP (jika ada remote)
+            if RemoteEvent and getRemoteArgs then
                 loopConnection = game:GetService("RunService").Heartbeat:Connect(function()
                     if featureStates[featureKey] then
-                        local args = getRemoteArgs() -- Ambil arguments dari function
-                        fireRemote(table.unpack(args))
+                        pcall(function()
+                            local args = getRemoteArgs()
+                            if args and #args > 0 then
+                                fireRemote(table.unpack(args))
+                            else
+                                fireRemote()
+                            end
+                        end)
                     end
                 end)
                 print("🔄 Auto loop started for: " .. featureName)
