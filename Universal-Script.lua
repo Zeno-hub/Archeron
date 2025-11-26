@@ -153,8 +153,8 @@ local gameConfigs = {
             menuInfo = {}
         },
         -- ⬇️ REMOTE EVENT SETTINGS UNTUK GAME INI
-        remotePath = "ReplicatedStorage.Remotes.ChopTree", -- ⬅️ Path remote event
-        remoteArgs = function() 
+        remotePath = nil, -- ⬅️ Path remote event
+        remoteArgs = nil
             return {"Axe", true} -- Arguments untuk game ini
         end
     },
