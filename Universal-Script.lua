@@ -161,18 +161,6 @@ local gameConfigs = {
 }
     
 
--- Get current game config
-local currentGameId = game.PlaceId
-
-    if not currentConfig then
-    player:Kick("⚠️ Archeron Hub\n\nGame ini tidak didukung oleh Archeron Hub.\nSilakan gunakan di game yang didukung.")
-    return
-end
-
--- ========================================
--- CONFIGURATION SECTION
--- ========================================
-
 -- ========================================
 -- CONFIGURATION SECTION (AUTO FROM GAME CONFIG)
 -- ========================================
