@@ -155,7 +155,7 @@ local gameConfigs = {
         -- ⬇️ REMOTE EVENT SETTINGS UNTUK GAME INI
         remotePath = "ReplicatedStorage.Events.PickUp", -- ⬅️ Path remote event
         remoteArgs = function()
-            return {"Stick", true} -- Arguments untuk game ini
+            return {"Stick"} -- Arguments untuk game ini
         end
     },
 }
