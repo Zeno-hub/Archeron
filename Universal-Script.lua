@@ -160,10 +160,6 @@ local gameConfigs = {
     },
 }
 
-
-local currentGameId = game.PlaceId
-local currentConfig = gameConfigs[currentGameId]  
-
 -- ========================================
 -- CONFIGURATION SECTION (AUTO FROM GAME CONFIG)
 -- ========================================
