@@ -176,13 +176,23 @@ if not currentConfig then
 end
 
 -- ⬇️ AUTO-LOAD REMOTE SETTINGS DARI GAME CONFIG
-local REMOTE_EVENT_PATH = currentConfig.remotePath or nil
-local getRemoteArgs = currentConfig.remoteArgs or function() return {} end
+local REMOTE_EVENT_PATH = currentConfig.remotePath
+local getRemoteArgs = currentConfig.remoteArgs
+
+-- ⬇️ FALLBACK jika remoteArgs tidak ada
+if not getRemoteArgs or type(getRemoteArgs) ~= "function" then
+    getRemoteArgs = function() 
+        return {} 
+    end
+end
 
 print("🎮 Game detected: " .. game.PlaceId)
 if REMOTE_EVENT_PATH then
     print("🔗 Remote Path: " .. REMOTE_EVENT_PATH)
+else
+    print("⚠️ No remote event configured for this game")
 end
+
 
 -- =============================
 -- REMOTE EVENT HANDLER
@@ -597,21 +607,28 @@ local function createToggleFeature(featureName, parent)
             ToggleButton.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
             createNotification(getText(featureName), getText("statusEnabled"), 3)
             
-            -- 🔥 AUTO FIRE REMOTE EVENT dengan LOOP (jika ada remote)
-            if RemoteEvent and getRemoteArgs then
+            -- 🔥 AUTO FIRE REMOTE EVENT dengan LOOP
+            if RemoteEvent then
                 loopConnection = game:GetService("RunService").Heartbeat:Connect(function()
                     if featureStates[featureKey] then
-                        pcall(function()
-                            local args = getRemoteArgs()
-                            if args and #args > 0 then
-                                fireRemote(table.unpack(args))
-                            else
-                                fireRemote()
+                        -- Panggil dengan pcall untuk safety
+                        local success, err = pcall(function()
+                            if getRemoteArgs then
+                                local args = getRemoteArgs()
+                                if args then
+                                    fireRemote(table.unpack(args))
+                                end
                             end
                         end)
+                        
+                        if not success then
+                            warn("❌ Error in loop:", err)
+                        end
                     end
                 end)
                 print("🔄 Auto loop started for: " .. featureName)
+            else
+                print("⚠️ RemoteEvent not found, toggle works but no auto-fire")
             end
         else
             ToggleButton.Text = "OFF"
