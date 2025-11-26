@@ -158,6 +158,7 @@ local gameConfigs = {
             return {"Axe", true} -- Arguments untuk game ini
         end
     },
+}
     
 
 -- Get current game config
@@ -172,15 +173,31 @@ end
 -- CONFIGURATION SECTION
 -- ========================================
 
-local LOGO_TEXTURE_ID = "rbxassetid://139400776308881"
-local REMOTE_EVENT_PATH = nil
-local REMOTE_EVENT_NAME = "YourRemoteEvent"
+-- ========================================
+-- CONFIGURATION SECTION (AUTO FROM GAME CONFIG)
+-- ========================================
 
-local function getRemoteArgs()
-    return {}
+local LOGO_TEXTURE_ID = "rbxassetid://139400776308881"
+
+-- Get current game config
+local currentGameId = game.PlaceId
+local currentConfig = gameConfigs[currentGameId]
+
+if not currentConfig then
+    player:Kick("⚠️ Archeron Hub\n\nGame ini tidak didukung oleh Archeron Hub.\nSilakan gunakan di game yang didukung.")
+    return
 end
 
--- ========================================
+-- ⬇️ AUTO-LOAD REMOTE SETTINGS DARI GAME CONFIG
+local REMOTE_EVENT_PATH = currentConfig.remotePath or nil
+local getRemoteArgs = currentConfig.remoteArgs or function() return {} end
+
+print("🎮 Game detected: " .. game.PlaceId)
+if REMOTE_EVENT_PATH then
+    print("🔗 Remote Path: " .. REMOTE_EVENT_PATH)
+end
+
+-- =============================
 -- REMOTE EVENT HANDLER
 -- ========================================
 
