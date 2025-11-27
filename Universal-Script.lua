@@ -1,11 +1,6 @@
 
 -- Archeron Hub Advanced GUI Script
 -- Created for Roblox with Multi-Game & Multi-Language Support
-local ok, err = pcall(function()
-    error("MARKER")
-end)
-
-print("DEBUG STARTED")
 
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
