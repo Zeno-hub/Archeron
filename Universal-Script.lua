@@ -208,45 +208,72 @@ local function connectRemoteEvent()
         return nil
     end
 
-    local current = game
-
-    -- Pecah path jadi table
-    for part in REMOTE_EVENT_PATH:gmatch("[^.]+") do
-        current = current:FindFirstChild(part)
-        if not current then
-            warn("❌ Remote Event Path tidak ditemukan: " .. REMOTE_EVENT_PATH)
-            return nil
+    local success, result = pcall(function()
+        local current = game
+        
+        -- Pecah path jadi table
+        for part in REMOTE_EVENT_PATH:gmatch("[^.]+") do
+            -- Cek apakah ini service atau child
+            local nextPart
+            
+            -- Coba ambil sebagai service dulu
+            pcall(function()
+                nextPart = game:GetService(part)
+            end)
+            
+            -- Kalau bukan service, coba sebagai child
+            if not nextPart then
+                nextPart = current:WaitForChild(part, 5)
+            end
+            
+            if not nextPart then
+                warn("❌ Part tidak ditemukan:", part)
+                return nil
+            end
+            
+            current = nextPart
         end
-    end
-
-    RemoteEvent = current
-
-    if RemoteEvent then
+        
+        return current
+    end)
+    
+    if success and result then
+        RemoteEvent = result
         print("✅ Remote Event connected:", RemoteEvent:GetFullName())
+        return RemoteEvent
+    else
+        warn("❌ Failed to connect remote event:", result)
+        return nil
     end
-
-    return RemoteEvent
 end
 
 -- Function untuk fire remote event
 local function fireRemote(...)
-    if RemoteEvent then
-        local success, err = pcall(function()
-            if RemoteEvent:IsA("RemoteEvent") then
-                RemoteEvent:FireServer(...)
-            elseif RemoteEvent:IsA("RemoteFunction") then
-                RemoteEvent:InvokeServer(...)
-            end
-        end)
-        
-        if not success then
-            warn("❌ Error firing remote:", err)
+    if not RemoteEvent then
+        warn("❌ RemoteEvent is nil")
+        return
+    end
+    
+    local success, err = pcall(function()
+        if RemoteEvent:IsA("RemoteEvent") then
+            RemoteEvent:FireServer(...)
+        elseif RemoteEvent:IsA("RemoteFunction") then
+            RemoteEvent:InvokeServer(...)
+        else
+            warn("❌ RemoteEvent bukan RemoteEvent atau RemoteFunction:", RemoteEvent.ClassName)
         end
+    end)
+    
+    if not success then
+        warn("❌ Error firing remote:", err)
     end
 end
 
--- Connect saat script load
-connectRemoteEvent()
+-- Connect saat script load dengan delay
+spawn(function()
+    wait(1) -- Tunggu 1 detik biar game fully loaded
+    connectRemoteEvent()
+end)
 
 -- ========================================
 -- MAIN GUI
