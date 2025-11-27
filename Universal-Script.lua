@@ -1,18 +1,11 @@
-local function dbg(msg)
-    print("[DEBUG] "..tostring(msg))
-end
-
-local function safe(f)
-    local ok, err = pcall(f)
-    if not ok then
-        print("[ERROR] "..tostring(err))
-    end
-end
-
-dbg("Script started")
 
 -- Archeron Hub Advanced GUI Script
 -- Created for Roblox with Multi-Game & Multi-Language Support
+local ok, err = pcall(function()
+    error("MARKER")
+end)
+
+print("DEBUG STARTED")
 
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
