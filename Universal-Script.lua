@@ -202,33 +202,29 @@ local RemoteEvent = nil
 
 -- Function untuk connect ke remote event
 local function connectRemoteEvent()
-    if REMOTE_EVENT_PATH then
-        local success, result = pcall(function()
-            return game:GetService(REMOTE_EVENT_PATH:match("^(%w+)"))
-        end)
-        
-        if success and result then
-            -- Cari remote event berdasarkan path
-            local pathParts = {}
-            for part in REMOTE_EVENT_PATH:gmatch("[^.]+") do
-                table.insert(pathParts, part)
-            end
-            
-            local current = game
-            for _, part in ipairs(pathParts) do
-                current = current:FindFirstChild(part)
-                if not current then
-                    warn("❌ Remote Event Path tidak ditemukan: " .. REMOTE_EVENT_PATH)
-                    return nil
-                end
-            end
-            
-            RemoteEvent = current
-            print("✅ Remote Event connected: " .. REMOTE_EVENT_PATH)
-            return RemoteEvent
+    if not REMOTE_EVENT_PATH then
+        warn("❌ REMOTE_EVENT_PATH kosong")
+        return nil
+    end
+
+    local current = game
+
+    -- Pecah path jadi table
+    for part in REMOTE_EVENT_PATH:gmatch("[^.]+") do
+        current = current:FindFirstChild(part)
+        if not current then
+            warn("❌ Remote Event Path tidak ditemukan: " .. REMOTE_EVENT_PATH)
+            return nil
         end
     end
-    return nil
+
+    RemoteEvent = current
+
+    if RemoteEvent then
+        print("✅ Remote Event connected:", RemoteEvent:GetFullName())
+    end
+
+    return RemoteEvent
 end
 
 -- Function untuk fire remote event
