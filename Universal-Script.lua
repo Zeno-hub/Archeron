@@ -154,7 +154,7 @@ local gameConfigs = {
             menuInfo = {}
         },
         -- ⬇️ REMOTE EVENT SETTINGS UNTUK GAME INI
-        remotePath = "ReplicatedStorage.Events.PickUp", -- ⬅️ Path remote event
+        remotePath = "game:GetService("ReplicatedStorage").Events.PickUp", -- ⬅️ Path remote event
         remoteArgs = function()
             return {"Stick"} -- Arguments untuk game ini
         end
@@ -1056,23 +1056,3 @@ wait(0.5)
 createNotification(getText("hubActive"), getText("loadSuccess"), 5)
 
 print("Archeron Hub loaded successfully with language: " .. currentLanguage)
-
-spawn(function()
-    -- Update game name saat UI selesai load
-    local success, gameName = pcall(function()
-        return game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
-    end)
-
-    if success then
-        GameNameLabel.Text = "Archeron Hub | " .. gameName
-    else
-        GameNameLabel.Text = "Archeron Hub | Unknown Game"
-    end
-
-    -- Notifikasi berhasil load
-    createNotification(
-        getText("hubActive"),
-        getText("loadSuccess"),
-        5
-    )
-end)
