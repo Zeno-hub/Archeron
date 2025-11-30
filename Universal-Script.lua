@@ -203,11 +203,20 @@ local RemoteEvent = nil
 
 -- Function untuk connect ke remote event
 local function connectRemoteEvent()
+    if not REMOTE_EVENT_PATH then
+        warn("⚠️ No remote path configured")
+        return nil
+    end
+    
     local success, result = pcall(function()
-        -- Direct access dengan WaitForChild
-        return game:GetService("ReplicatedStorage")
-            :WaitForChild("Events", 5)
-            :WaitForChild("PickUp", 5)
+        local parts = string.split(REMOTE_EVENT_PATH, ".")
+        local current = game:GetService(parts[1])
+        
+        for i = 2, #parts do
+            current = current:WaitForChild(parts[i], 10)
+        end
+        
+        return current
     end)
     
     if success and result then
@@ -215,7 +224,8 @@ local function connectRemoteEvent()
         print("✅ Remote Event connected:", RemoteEvent:GetFullName())
         return RemoteEvent
     else
-        warn("❌ Failed to connect to ReplicatedStorage.Events.PickUp")
+        warn("❌ Failed to connect to", REMOTE_EVENT_PATH)
+        warn("❌ Error:", result)
         return nil
     end
 end
@@ -591,28 +601,37 @@ local function createToggleFeature(featureName, parent)
             
             -- 🔥 AUTO FIRE REMOTE EVENT dengan LOOP
             if RemoteEvent then
+                local collectCount = 0
+                
                 loopConnection = game:GetService("RunService").Heartbeat:Connect(function()
-                    if featureStates[featureKey] then
-                        -- Panggil dengan pcall untuk safety
+                    if featureStates[featureKey] and RemoteEvent then
                         local success, err = pcall(function()
-                            if getRemoteArgs then
-                                local args = getRemoteArgs()
-                                if args then
-                                    fireRemote(table.unpack(args))
-                                end
+                            -- 🎯 Collect semua jenis stick yang ada
+                            local itemsToCollect = {"Stick", "Gold stick", "ShadowStick"}
+                            
+                            for _, itemName in ipairs(itemsToCollect) do
+                                RemoteEvent:FireServer(itemName)
+                            end
+                            
+                            collectCount = collectCount + 1
+                            if collectCount % 100 == 0 then
+                                print("✅ Auto-collected", collectCount, "cycles (Stick, Gold stick, ShadowStick)")
                             end
                         end)
                         
                         if not success then
-                            warn("❌ Error in loop:", err)
+                            warn("❌ Error firing remote:", err)
                         end
+                        
+                        -- Delay sedikit biar ga spam terlalu cepat
+                        task.wait(0.1)
                     end
                 end)
-                print("🔄 Auto loop started for: " .. featureName)
+                print("🔄 Auto collect started for: " .. featureName)
             else
-                print("⚠️ RemoteEvent not found, toggle works but no auto-fire")
+                warn("⚠️ RemoteEvent tidak tersedia")
+                createNotification("Warning", "Remote event tidak ditemukan", 3)
             end
-        else
             ToggleButton.Text = "OFF"
             ToggleButton.BackgroundColor3 = Color3.fromRGB(200, 100, 100)
             createNotification(getText(featureName), getText("statusDisabled"), 3)
