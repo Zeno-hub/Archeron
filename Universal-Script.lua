@@ -1,9 +1,8 @@
--- Archeron Hub Advanced GUI Script - FINAL COMPLETE VERSION
--- Multi-Game & Multi-Language Support
+-- Archeron Hub Advanced GUI Script - ENGLISH ONLY
+-- Multi-Game Support
 
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
-local LocalizationService = game:GetService("LocalizationService")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
@@ -14,67 +13,30 @@ if playerGui:FindFirstChild("ArcheronHub") then
     wait(0.1)
 end
 
-local currentLanguage = "en"
-
-local function detectLanguage()
-    local success, result = pcall(function()
-        return LocalizationService.RobloxLocaleId
-    end)
-    if success and result then
-        if result:find("^id") then return "id" end
-    end
-    return "en"
-end
-
-currentLanguage = detectLanguage()
-
 local translations = {
-    en = {
-        hubActive = "Archeron - Hub Active ✅",
-        loadSuccess = "Successfully loaded!",
-        statusEnabled = "Status: Enabled",
-        statusDisabled = "Status: Disabled",
-        menuMain = "🔥 Main",
-        menuPlayer = "🕹️ Player",
-        menuInfo = "📄 Info",
-        autoFarm = "Auto Farm",
-        autoFarmDesc = "Automatically farm resources",
-        fly = "Fly",
-        flyDesc = "Enable flight",
-        noclip = "Noclip",
-        noclipDesc = "Walk through walls",
-        walkspeed = "Walk Speed",
-        walkspeedDesc = "Adjust walking speed",
-        jumppower = "Jump Power",
-        jumppowerDesc = "Adjust jump height",
-        autoCollect = "Auto Collect",
-        autoCollectDesc = "Automatically collect items",
-    },
-    id = {
-        hubActive = "Archeron - Hub Aktif ✅",
-        loadSuccess = "Berhasil dimuat!",
-        statusEnabled = "Status: Aktif",
-        statusDisabled = "Status: Nonaktif",
-        menuMain = "🔥 Utama",
-        menuPlayer = "🕹️ Pemain",
-        menuInfo = "📄 Info",
-        autoFarm = "Farm Otomatis",
-        autoFarmDesc = "Farm otomatis",
-        fly = "Terbang",
-        flyDesc = "Aktifkan terbang",
-        noclip = "Tembus Dinding",
-        noclipDesc = "Jalan tembus dinding",
-        walkspeed = "Kecepatan Jalan",
-        walkspeedDesc = "Atur kecepatan",
-        jumppower = "Kekuatan Lompat",
-        jumppowerDesc = "Atur tinggi lompat",
-        autoCollect = "Ambil Otomatis",
-        autoCollectDesc = "Ambil item otomatis",
-    }
+    hubActive = "Archeron - Hub Active ✅",
+    loadSuccess = "Successfully loaded!",
+    statusEnabled = "Status: Enabled",
+    statusDisabled = "Status: Disabled",
+    menuMain = "🔥 Main",
+    menuPlayer = "🕹️ Player",
+    menuInfo = "📄 Info",
+    collectAllStick = "Collect All Stick",
+    collectAllStickDesc = "Automatically collect all sticks",
+    fly = "Fly",
+    flyDesc = "Enable flight (Mobile & PC)",
+    noclip = "Noclip",
+    noclipDesc = "Walk through walls",
+    walkspeed = "Walk Speed",
+    walkspeedDesc = "Set walking speed",
+    jumppower = "Jump Power",
+    jumppowerDesc = "Set jump height",
+    owner = "Owner",
+    ownerValue = "Archeron",
 }
 
 local function getText(key)
-    return translations[currentLanguage][key] or translations.en[key] or key
+    return translations[key] or key
 end
 
 local gameConfigs = {
@@ -105,7 +67,7 @@ local currentConfig = gameConfigs[currentGameId]
 print("🎮 Place ID:", currentGameId)
 
 if not currentConfig then
-    warn("⚠️ Game tidak dikonfigurasi!")
+    warn("⚠️ Game not configured!")
     currentConfig = {
         menus = {"menuMain"},
         features = {menuMain = {}},
@@ -313,6 +275,8 @@ ContentPad.PaddingLeft = UDim.new(0, 10)
 ContentPad.PaddingRight = UDim.new(0, 10)
 
 local featureStates = {}
+local flyConnection = nil
+local noclipConnection = nil
 
 local function createToggleFeature(name, parent)
     featureStates[name] = false
@@ -367,40 +331,152 @@ local function createToggleFeature(name, parent)
             btn.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
             createNotification(getText(name), getText("statusEnabled"), 3)
             
-            if not RemoteEvent then
-                connectRemoteEvent()
-                wait(0.5)
-            end
+            -- Collect All Stick Feature
+            if name == "collectAllStick" then
+                if not RemoteEvent then
+                    connectRemoteEvent()
+                    wait(0.5)
+                end
+                
+                if RemoteEvent then
+                    local count = 0
+                    loop = RunService.Heartbeat:Connect(function()
+                        if featureStates[name] and RemoteEvent then
+                            pcall(function()
+                                for _, item in ipairs({"Stick", "Gold stick", "ShadowStick"}) do
+                                    RemoteEvent:FireServer(item)
+                                end
+                                count = count + 1
+                                if count % 100 == 0 then
+                                    print("✅ Collected", count, "cycles")
+                                end
+                            end)
+                            task.wait(0.1)
+                        end
+                    end)
+                else
+                    btn.Text = "OFF"
+                    btn.BackgroundColor3 = Color3.fromRGB(200, 100, 100)
+                    featureStates[name] = false
+                    createNotification("❌ Error", "Remote not found!", 5)
+                end
             
-            if RemoteEvent then
-                local count = 0
-                loop = RunService.Heartbeat:Connect(function()
-                    if featureStates[name] and RemoteEvent then
-                        pcall(function()
-                            for _, item in ipairs({"Stick", "Gold stick", "ShadowStick"}) do
-                                RemoteEvent:FireServer(item)
-                            end
-                            count = count + 1
-                            if count % 100 == 0 then
-                                print("✅ Collected", count, "cycles")
+            -- Fly Feature (Mobile & PC)
+            elseif name == "fly" then
+                local char = player.Character
+                if char then
+                    local humanoid = char:FindFirstChildOfClass("Humanoid")
+                    local rootPart = char:FindFirstChild("HumanoidRootPart")
+                    
+                    if humanoid and rootPart then
+                        local flySpeed = 50
+                        local bodyVelocity = Instance.new("BodyVelocity")
+                        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+                        bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+                        bodyVelocity.Parent = rootPart
+                        
+                        local bodyGyro = Instance.new("BodyGyro")
+                        bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+                        bodyGyro.P = 9e4
+                        bodyGyro.Parent = rootPart
+                        
+                        flyConnection = RunService.Heartbeat:Connect(function()
+                            if featureStates["fly"] then
+                                local camera = workspace.CurrentCamera
+                                local moveDir = Vector3.new(0, 0, 0)
+                                
+                                -- PC Controls
+                                if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+                                    moveDir = moveDir + (camera.CFrame.LookVector)
+                                end
+                                if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+                                    moveDir = moveDir - (camera.CFrame.LookVector)
+                                end
+                                if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+                                    moveDir = moveDir - (camera.CFrame.RightVector)
+                                end
+                                if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+                                    moveDir = moveDir + (camera.CFrame.RightVector)
+                                end
+                                if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+                                    moveDir = moveDir + Vector3.new(0, 1, 0)
+                                end
+                                if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+                                    moveDir = moveDir - Vector3.new(0, 1, 0)
+                                end
+                                
+                                -- Mobile Controls (TouchEnabled)
+                                if humanoid.MoveVector.Magnitude > 0 then
+                                    moveDir = moveDir + (camera.CFrame.LookVector * humanoid.MoveVector.Z)
+                                    moveDir = moveDir + (camera.CFrame.RightVector * humanoid.MoveVector.X)
+                                end
+                                
+                                if humanoid.Jump then
+                                    moveDir = moveDir + Vector3.new(0, 1, 0)
+                                end
+                                
+                                bodyVelocity.Velocity = moveDir.Unit * flySpeed
+                                bodyGyro.CFrame = camera.CFrame
                             end
                         end)
-                        task.wait(0.1)
+                    end
+                end
+            
+            -- Noclip Feature
+            elseif name == "noclip" then
+                noclipConnection = RunService.Stepped:Connect(function()
+                    if featureStates["noclip"] then
+                        local char = player.Character
+                        if char then
+                            for _, part in pairs(char:GetDescendants()) do
+                                if part:IsA("BasePart") then
+                                    part.CanCollide = false
+                                end
+                            end
+                        end
                     end
                 end)
-            else
-                btn.Text = "OFF"
-                btn.BackgroundColor3 = Color3.fromRGB(200, 100, 100)
-                featureStates[name] = false
-                createNotification("❌ Error", "Remote tidak ditemukan!", 5)
             end
+            
         else
             btn.Text = "OFF"
             btn.BackgroundColor3 = Color3.fromRGB(200, 100, 100)
             createNotification(getText(name), getText("statusDisabled"), 3)
+            
             if loop then
                 loop:Disconnect()
                 loop = nil
+            end
+            
+            -- Stop Fly
+            if name == "fly" and flyConnection then
+                flyConnection:Disconnect()
+                flyConnection = nil
+                local char = player.Character
+                if char then
+                    local rootPart = char:FindFirstChild("HumanoidRootPart")
+                    if rootPart then
+                        for _, obj in pairs(rootPart:GetChildren()) do
+                            if obj:IsA("BodyVelocity") or obj:IsA("BodyGyro") then
+                                obj:Destroy()
+                            end
+                        end
+                    end
+                end
+            end
+            
+            -- Stop Noclip
+            if name == "noclip" and noclipConnection then
+                noclipConnection:Disconnect()
+                noclipConnection = nil
+                local char = player.Character
+                if char then
+                    for _, part in pairs(char:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = true
+                        end
+                    end
+                end
             end
         end
     end)
@@ -434,6 +510,17 @@ local function createSliderFeature(name, minVal, maxVal, def, parent)
     val.TextColor3 = Color3.fromRGB(138, 43, 226)
     val.Font = Enum.Font.GothamBold
     val.TextSize = 14
+    
+    local desc = Instance.new("TextLabel", frame)
+    desc.Size = UDim2.new(1, -30, 0, 30)
+    desc.Position = UDim2.new(0, 15, 0, 35)
+    desc.BackgroundTransparency = 1
+    desc.Text = getText(name .. "Desc")
+    desc.TextColor3 = Color3.fromRGB(150, 150, 170)
+    desc.Font = Enum.Font.Gotham
+    desc.TextSize = 11
+    desc.TextXAlignment = Enum.TextXAlignment.Left
+    desc.TextWrapped = true
     
     local bar = Instance.new("Frame", frame)
     bar.Size = UDim2.new(1, -30, 0, 8)
@@ -476,8 +563,59 @@ local function createSliderFeature(name, minVal, maxVal, def, parent)
             featureStates[name] = v
             val.Text = tostring(v)
             TweenService:Create(fill, TweenInfo.new(0.1), {Size = UDim2.new(pos, 0, 1, 0)}):Play()
+            
+            -- Apply Walkspeed
+            if name == "walkspeed" then
+                local char = player.Character
+                if char then
+                    local humanoid = char:FindFirstChildOfClass("Humanoid")
+                    if humanoid then
+                        humanoid.WalkSpeed = v
+                    end
+                end
+            end
+            
+            -- Apply JumpPower
+            if name == "jumppower" then
+                local char = player.Character
+                if char then
+                    local humanoid = char:FindFirstChildOfClass("Humanoid")
+                    if humanoid then
+                        humanoid.JumpPower = v
+                    end
+                end
+            end
         end
     end)
+end
+
+local function createInfoFeature(name, value, parent)
+    local frame = Instance.new("Frame", parent)
+    frame.Size = UDim2.new(1, -10, 0, 80)
+    frame.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+    frame.BorderSizePixel = 0
+    
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
+    
+    local title = Instance.new("TextLabel", frame)
+    title.Size = UDim2.new(1, -30, 0, 25)
+    title.Position = UDim2.new(0, 15, 0, 12)
+    title.BackgroundTransparency = 1
+    title.Text = getText(name)
+    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 14
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local valueLabel = Instance.new("TextLabel", frame)
+    valueLabel.Size = UDim2.new(1, -30, 0, 30)
+    valueLabel.Position = UDim2.new(0, 15, 0, 40)
+    valueLabel.BackgroundTransparency = 1
+    valueLabel.Text = value
+    valueLabel.TextColor3 = Color3.fromRGB(138, 43, 226)
+    valueLabel.Font = Enum.Font.GothamBold
+    valueLabel.TextSize = 20
+    valueLabel.TextXAlignment = Enum.TextXAlignment.Left
 end
 
 local currentMenu = nil
@@ -506,6 +644,8 @@ local function loadMenu(key)
                 createToggleFeature(f.name, ContentArea)
             elseif f.type == "slider" then
                 createSliderFeature(f.name, f.min, f.max, f.default, ContentArea)
+            elseif f.type == "info" then
+                createInfoFeature(f.name, f.value, ContentArea)
             end
         end
     end
@@ -546,7 +686,7 @@ ToggleFrame.ZIndex = 10
 
 Instance.new("UICorner", ToggleFrame).CornerRadius = UDim.new(0, 12)
 
--- Border ungu
+-- Purple border
 local ToggleBorder = Instance.new("UIStroke", ToggleFrame)
 ToggleBorder.Color = Color3.fromRGB(138, 43, 226)
 ToggleBorder.Thickness = 2
