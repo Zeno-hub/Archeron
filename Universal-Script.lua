@@ -24,6 +24,8 @@ local function getText(key)
         menuInfo = "📄 Info",
         collectAllStick = "Collect All Stick",
         collectAllStickDesc = "Automatically collect all sticks",
+        autoClick = "Auto Click", 
+        autoClickDesc = "For clicking Hub",
         fly = "Fly",
         flyDesc = "Enable flight (Mobile & PC)",
         noclip = "Noclip",
@@ -54,20 +56,25 @@ local gameConfig = {
             {name = "owner", type = "info", value = "Archeron"}
         }
     },
-    remotePath = "ReplicatedStorage.Events.PickUp",
+    remotePath = {
+        pickup = "ReplicatedStorage.Events.PickUp",
+        click = "ReplicatedStorage.Events.Click",  
+    },
 }
+        
+
 
 local LOGO_ID = "rbxassetid://139400776308881"
-local RemoteEvent = nil
+local RemoteEvent = {}
 local featureStates = {}
 local flyConnection = nil
 local noclipConnection = nil
 
 -- Connect Remote
-local function connectRemote()
-    if not gameConfig.remotePath then return nil end
+local function connectRemote(key, path)
+    if not path then return nil end
     local success, result = pcall(function()
-        local parts = string.split(gameConfig.remotePath, ".")
+        local parts = string.split(path, ".")
         local current = game:GetService(parts[1])
         for i = 2, #parts do
             current = current:WaitForChild(parts[i], 10)
@@ -75,15 +82,18 @@ local function connectRemote()
         return current
     end)
     if success and result then
-        RemoteEvent = result
-        print("✅ Remote connected")
+        RemoteEvents[key] = result
+        print("✅ Remote connected:", key)
     end
     return result
 end
 
 task.spawn(function()
     wait(2)
-    connectRemote()
+    -- Connect semua remote
+    for key, path in pairs(gameConfig.remotePaths) do
+        connectRemote(key, path)
+    end
 end)
 
 -- Create GUI
@@ -304,6 +314,19 @@ local function createToggle(name, parent)
                         end
                     end)
                 end
+
+             elseif name == "autoClick" then
+            if not RemoteEvents.click then connectRemote("click", gameConfig.remotePaths.click) wait(0.5) end
+            if RemoteEvents.click then
+                loop = RunService.Heartbeat:Connect(function()
+                    if featureStates[name] then
+                        pcall(function()
+                            RemoteEvents.click:FireServer()
+                        end)
+                        wait(0.1)  -- Delay kecil biar gak lag, bisa disesuaikan
+                    end
+                end)
+                    end
             
             elseif name == "fly" then
                 local char = player.Character
