@@ -1,6 +1,4 @@
--- Archeron Hub Advanced GUI Script - ENGLISH ONLY
--- Multi-Game Support
-
+-- Archeron Hub - Fixed Version
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -8,118 +6,93 @@ local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
+-- Destroy old GUI if exists
 if playerGui:FindFirstChild("ArcheronHub") then
     playerGui.ArcheronHub:Destroy()
     wait(0.1)
 end
 
-local translations = {
-    hubActive = "Archeron - Hub Active ✅",
-    loadSuccess = "Successfully loaded!",
-    statusEnabled = "Status: Enabled",
-    statusDisabled = "Status: Disabled",
-    menuMain = "🔥 Main",
-    menuPlayer = "🕹️ Player",
-    menuInfo = "📄 Info",
-    collectAllStick = "Collect All Stick",
-    collectAllStickDesc = "Automatically collect all sticks",
-    fly = "Fly",
-    flyDesc = "Enable flight (Mobile & PC)",
-    noclip = "Noclip",
-    noclipDesc = "Walk through walls",
-    walkspeed = "Walk Speed",
-    walkspeedDesc = "Set walking speed",
-    jumppower = "Jump Power",
-    jumppowerDesc = "Set jump height",
-    owner = "Owner",
-    ownerValue = "Archeron",
-}
-
+-- Translations
 local function getText(key)
+    local translations = {
+        hubActive = "Archeron - Hub Active ✅",
+        loadSuccess = "Successfully loaded!",
+        statusEnabled = "Status: Enabled",
+        statusDisabled = "Status: Disabled",
+        menuMain = "🔥 Main",
+        menuPlayer = "🕹️ Player",
+        menuInfo = "📄 Info",
+        collectAllStick = "Collect All Stick",
+        collectAllStickDesc = "Automatically collect all sticks",
+        fly = "Fly",
+        flyDesc = "Enable flight (Mobile & PC)",
+        noclip = "Noclip",
+        noclipDesc = "Walk through walls",
+        walkspeed = "Walk Speed",
+        walkspeedDesc = "Set walking speed",
+        jumppower = "Jump Power",
+        jumppowerDesc = "Set jump height",
+        owner = "Owner",
+    }
     return translations[key] or key
 end
 
-local gameConfigs = {
-    [120870800305934] = {
-        menus = {"menuMain", "menuPlayer", "menuInfo"},
-        features = {
-            menuMain = {
-                {name = "collectAllStick", type = "toggle"},
-            },
-            menuPlayer = {
-                {name = "fly", type = "toggle"},
-                {name = "noclip", type = "toggle"},
-                {name = "walkspeed", type = "slider", min = 16, max = 500, default = 16},
-                {name = "jumppower", type = "slider", min = 50, max = 500, default = 50},
-            },
-            menuInfo = {
-                {name = "owner", type = "info", value = "Archeron"}
-            }
+-- Game Config
+local gameConfig = {
+    menus = {"menuMain", "menuPlayer", "menuInfo"},
+    features = {
+        menuMain = {
+            {name = "collectAllStick", type = "toggle"},
         },
-        remotePath = "ReplicatedStorage.Events.PickUp",
+        menuPlayer = {
+            {name = "fly", type = "toggle"},
+            {name = "noclip", type = "toggle"},
+            {name = "walkspeed", type = "slider", min = 16, max = 500, default = 16},
+            {name = "jumppower", type = "slider", min = 50, max = 500, default = 50},
+        },
+        menuInfo = {
+            {name = "owner", type = "info", value = "Archeron"}
+        }
     },
+    remotePath = "ReplicatedStorage.Events.PickUp",
 }
 
-local LOGO_TEXTURE_ID = "rbxassetid://139400776308881"
-local currentGameId = game.PlaceId
-local currentConfig = gameConfigs[currentGameId]
-
-print("🎮 Place ID:", currentGameId)
-
-if not currentConfig then
-    warn("⚠️ Game not configured!")
-    currentConfig = {
-        menus = {"menuMain"},
-        features = {menuMain = {}},
-        remotePath = nil,
-    }
-end
-
-local REMOTE_EVENT_PATH = currentConfig.remotePath
+local LOGO_ID = "rbxassetid://139400776308881"
 local RemoteEvent = nil
+local featureStates = {}
+local flyConnection = nil
+local noclipConnection = nil
 
-local function connectRemoteEvent()
-    if not REMOTE_EVENT_PATH then return nil end
-    
+-- Connect Remote
+local function connectRemote()
+    if not gameConfig.remotePath then return nil end
     local success, result = pcall(function()
-        local parts = string.split(REMOTE_EVENT_PATH, ".")
+        local parts = string.split(gameConfig.remotePath, ".")
         local current = game:GetService(parts[1])
         for i = 2, #parts do
             current = current:WaitForChild(parts[i], 10)
         end
         return current
     end)
-    
     if success and result then
         RemoteEvent = result
-        print("✅ Remote connected:", RemoteEvent:GetFullName())
-        return RemoteEvent
-    else
-        warn("❌ Failed to connect")
-        return nil
+        print("✅ Remote connected")
     end
+    return result
 end
 
 task.spawn(function()
     wait(2)
-    for i = 1, 5 do
-        if RemoteEvent then break end
-        print("🔄 Connecting... (" .. i .. "/5)")
-        connectRemoteEvent()
-        if not RemoteEvent then wait(2) end
-    end
-    if RemoteEvent then
-        print("✅ Connected!")
-    else
-        warn("❌ Connection failed")
-    end
+    connectRemote()
 end)
 
+-- Create GUI
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "ArcheronHub"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = playerGui
 
+-- Notification
 local NotificationFrame = Instance.new("Frame")
 NotificationFrame.Size = UDim2.new(0, 300, 1, 0)
 NotificationFrame.Position = UDim2.new(1, -320, 0, 0)
@@ -167,29 +140,29 @@ local function createNotification(title, message, duration)
     }):Play()
     
     task.delay(duration or 5, function()
-        local tween = TweenService:Create(notif, TweenInfo.new(0.3), {
+        TweenService:Create(notif, TweenInfo.new(0.3), {
             Position = UDim2.new(0, 0, 1, 20)
-        })
-        tween:Play()
-        tween.Completed:Connect(function() notif:Destroy() end)
+        }):Play()
+        wait(0.3)
+        notif:Destroy()
     end)
 end
 
+-- Main Frame
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, 700, 0, 450)
 MainFrame.Position = UDim2.new(0.5, -350, 0.5, -225)
 MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
 MainFrame.BorderSizePixel = 0
-MainFrame.ClipsDescendants = true
 MainFrame.Parent = ScreenGui
 
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 15)
 
+-- Header
 local HeaderFrame = Instance.new("Frame", MainFrame)
 HeaderFrame.Size = UDim2.new(1, 0, 0, 70)
 HeaderFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
 HeaderFrame.BorderSizePixel = 0
-HeaderFrame.ZIndex = 2
 
 Instance.new("UICorner", HeaderFrame).CornerRadius = UDim.new(0, 15)
 
@@ -198,15 +171,13 @@ HeaderCover.Size = UDim2.new(1, 0, 0, 15)
 HeaderCover.Position = UDim2.new(0, 0, 1, -15)
 HeaderCover.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
 HeaderCover.BorderSizePixel = 0
-HeaderCover.ZIndex = 2
 
 local LogoFrame = Instance.new("ImageLabel", HeaderFrame)
 LogoFrame.Size = UDim2.new(0, 50, 0, 50)
 LogoFrame.Position = UDim2.new(0, 10, 0, 10)
 LogoFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 65)
 LogoFrame.BorderSizePixel = 0
-LogoFrame.Image = LOGO_TEXTURE_ID
-LogoFrame.ZIndex = 3
+LogoFrame.Image = LOGO_ID
 
 Instance.new("UICorner", LogoFrame).CornerRadius = UDim.new(0, 10)
 
@@ -214,19 +185,11 @@ local GameNameLabel = Instance.new("TextLabel", HeaderFrame)
 GameNameLabel.Size = UDim2.new(1, -80, 0, 30)
 GameNameLabel.Position = UDim2.new(0, 70, 0, 12)
 GameNameLabel.BackgroundTransparency = 1
-GameNameLabel.Text = "Loading..."
+GameNameLabel.Text = "Sticks Incremental"
 GameNameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 GameNameLabel.Font = Enum.Font.GothamBold
 GameNameLabel.TextSize = 18
 GameNameLabel.TextXAlignment = Enum.TextXAlignment.Left
-GameNameLabel.ZIndex = 3
-
-spawn(function()
-    local s, n = pcall(function()
-        return game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
-    end)
-    GameNameLabel.Text = s and n or "Unknown"
-end)
 
 local HubLabel = Instance.new("TextLabel", HeaderFrame)
 HubLabel.Size = UDim2.new(1, -80, 0, 20)
@@ -237,14 +200,13 @@ HubLabel.TextColor3 = Color3.fromRGB(150, 150, 200)
 HubLabel.Font = Enum.Font.Gotham
 HubLabel.TextSize = 14
 HubLabel.TextXAlignment = Enum.TextXAlignment.Left
-HubLabel.ZIndex = 3
 
+-- Menu Sidebar
 local MenuSidebar = Instance.new("Frame", MainFrame)
 MenuSidebar.Size = UDim2.new(0, 150, 1, -90)
 MenuSidebar.Position = UDim2.new(0, 10, 0, 80)
 MenuSidebar.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
 MenuSidebar.BorderSizePixel = 0
-MenuSidebar.ZIndex = 2
 
 Instance.new("UICorner", MenuSidebar).CornerRadius = UDim.new(0, 10)
 
@@ -256,13 +218,13 @@ MenuPad.PaddingTop = UDim.new(0, 5)
 MenuPad.PaddingLeft = UDim.new(0, 5)
 MenuPad.PaddingRight = UDim.new(0, 5)
 
+-- Content Area
 local ContentArea = Instance.new("ScrollingFrame", MainFrame)
 ContentArea.Size = UDim2.new(1, -180, 1, -90)
 ContentArea.Position = UDim2.new(0, 170, 0, 80)
 ContentArea.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
 ContentArea.BorderSizePixel = 0
 ContentArea.ScrollBarThickness = 6
-ContentArea.ZIndex = 2
 
 Instance.new("UICorner", ContentArea).CornerRadius = UDim.new(0, 10)
 
@@ -274,11 +236,8 @@ ContentPad.PaddingTop = UDim.new(0, 10)
 ContentPad.PaddingLeft = UDim.new(0, 10)
 ContentPad.PaddingRight = UDim.new(0, 10)
 
-local featureStates = {}
-local flyConnection = nil
-local noclipConnection = nil
-
-local function createToggleFeature(name, parent)
+-- Create Toggle Feature
+local function createToggle(name, parent)
     featureStates[name] = false
     
     local frame = Instance.new("Frame", parent)
@@ -331,98 +290,59 @@ local function createToggleFeature(name, parent)
             btn.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
             createNotification(getText(name), getText("statusEnabled"), 3)
             
-            -- Collect All Stick Feature
             if name == "collectAllStick" then
-                if not RemoteEvent then
-                    connectRemoteEvent()
-                    wait(0.5)
-                end
-                
+                if not RemoteEvent then connectRemote() wait(0.5) end
                 if RemoteEvent then
-                    local count = 0
                     loop = RunService.Heartbeat:Connect(function()
-                        if featureStates[name] and RemoteEvent then
+                        if featureStates[name] then
                             pcall(function()
-                                for _, item in ipairs({"Stick", "Gold stick", "ShadowStick"}) do
-                                    RemoteEvent:FireServer(item)
-                                end
-                                count = count + 1
-                                if count % 100 == 0 then
-                                    print("✅ Collected", count, "cycles")
-                                end
+                                RemoteEvent:FireServer("Stick")
+                                RemoteEvent:FireServer("Gold stick")
+                                RemoteEvent:FireServer("ShadowStick")
                             end)
-                            task.wait(0.1)
+                            wait(0.1)
                         end
                     end)
-                else
-                    btn.Text = "OFF"
-                    btn.BackgroundColor3 = Color3.fromRGB(200, 100, 100)
-                    featureStates[name] = false
-                    createNotification("❌ Error", "Remote not found!", 5)
                 end
             
-            -- Fly Feature (Mobile & PC)
             elseif name == "fly" then
                 local char = player.Character
                 if char then
-                    local humanoid = char:FindFirstChildOfClass("Humanoid")
-                    local rootPart = char:FindFirstChild("HumanoidRootPart")
-                    
-                    if humanoid and rootPart then
-                        local flySpeed = 50
-                        local bodyVelocity = Instance.new("BodyVelocity")
-                        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
-                        bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-                        bodyVelocity.Parent = rootPart
+                    local hum = char:FindFirstChildOfClass("Humanoid")
+                    local root = char:FindFirstChild("HumanoidRootPart")
+                    if hum and root then
+                        local bv = Instance.new("BodyVelocity", root)
+                        bv.Velocity = Vector3.new(0, 0, 0)
+                        bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
                         
-                        local bodyGyro = Instance.new("BodyGyro")
-                        bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
-                        bodyGyro.P = 9e4
-                        bodyGyro.Parent = rootPart
+                        local bg = Instance.new("BodyGyro", root)
+                        bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+                        bg.P = 9e4
                         
                         flyConnection = RunService.Heartbeat:Connect(function()
                             if featureStates["fly"] then
-                                local camera = workspace.CurrentCamera
-                                local moveDir = Vector3.new(0, 0, 0)
+                                local cam = workspace.CurrentCamera
+                                local dir = Vector3.new(0, 0, 0)
                                 
-                                -- PC Controls
-                                if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-                                    moveDir = moveDir + (camera.CFrame.LookVector)
-                                end
-                                if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-                                    moveDir = moveDir - (camera.CFrame.LookVector)
-                                end
-                                if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-                                    moveDir = moveDir - (camera.CFrame.RightVector)
-                                end
-                                if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-                                    moveDir = moveDir + (camera.CFrame.RightVector)
-                                end
-                                if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-                                    moveDir = moveDir + Vector3.new(0, 1, 0)
-                                end
-                                if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-                                    moveDir = moveDir - Vector3.new(0, 1, 0)
+                                if UserInputService:IsKeyDown(Enum.KeyCode.W) then dir = dir + cam.CFrame.LookVector end
+                                if UserInputService:IsKeyDown(Enum.KeyCode.S) then dir = dir - cam.CFrame.LookVector end
+                                if UserInputService:IsKeyDown(Enum.KeyCode.A) then dir = dir - cam.CFrame.RightVector end
+                                if UserInputService:IsKeyDown(Enum.KeyCode.D) then dir = dir + cam.CFrame.RightVector end
+                                if UserInputService:IsKeyDown(Enum.KeyCode.Space) then dir = dir + Vector3.new(0, 1, 0) end
+                                if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then dir = dir - Vector3.new(0, 1, 0) end
+                                
+                                if hum.MoveVector.Magnitude > 0 then
+                                    dir = dir + (cam.CFrame.LookVector * hum.MoveVector.Z)
+                                    dir = dir + (cam.CFrame.RightVector * hum.MoveVector.X)
                                 end
                                 
-                                -- Mobile Controls (TouchEnabled)
-                                if humanoid.MoveVector.Magnitude > 0 then
-                                    moveDir = moveDir + (camera.CFrame.LookVector * humanoid.MoveVector.Z)
-                                    moveDir = moveDir + (camera.CFrame.RightVector * humanoid.MoveVector.X)
-                                end
-                                
-                                if humanoid.Jump then
-                                    moveDir = moveDir + Vector3.new(0, 1, 0)
-                                end
-                                
-                                bodyVelocity.Velocity = moveDir.Unit * flySpeed
-                                bodyGyro.CFrame = camera.CFrame
+                                bv.Velocity = dir.Unit * 50
+                                bg.CFrame = cam.CFrame
                             end
                         end)
                     end
                 end
             
-            -- Noclip Feature
             elseif name == "noclip" then
                 noclipConnection = RunService.Stepped:Connect(function()
                     if featureStates["noclip"] then
@@ -437,26 +357,20 @@ local function createToggleFeature(name, parent)
                     end
                 end)
             end
-            
         else
             btn.Text = "OFF"
             btn.BackgroundColor3 = Color3.fromRGB(200, 100, 100)
             createNotification(getText(name), getText("statusDisabled"), 3)
             
-            if loop then
-                loop:Disconnect()
-                loop = nil
-            end
+            if loop then loop:Disconnect() end
             
-            -- Stop Fly
             if name == "fly" and flyConnection then
                 flyConnection:Disconnect()
-                flyConnection = nil
                 local char = player.Character
                 if char then
-                    local rootPart = char:FindFirstChild("HumanoidRootPart")
-                    if rootPart then
-                        for _, obj in pairs(rootPart:GetChildren()) do
+                    local root = char:FindFirstChild("HumanoidRootPart")
+                    if root then
+                        for _, obj in pairs(root:GetChildren()) do
                             if obj:IsA("BodyVelocity") or obj:IsA("BodyGyro") then
                                 obj:Destroy()
                             end
@@ -465,10 +379,8 @@ local function createToggleFeature(name, parent)
                 end
             end
             
-            -- Stop Noclip
             if name == "noclip" and noclipConnection then
                 noclipConnection:Disconnect()
-                noclipConnection = nil
                 local char = player.Character
                 if char then
                     for _, part in pairs(char:GetDescendants()) do
@@ -482,7 +394,8 @@ local function createToggleFeature(name, parent)
     end)
 end
 
-local function createSliderFeature(name, minVal, maxVal, def, parent)
+-- Create Slider Feature
+local function createSlider(name, minVal, maxVal, def, parent)
     featureStates[name] = def
     
     local frame = Instance.new("Frame", parent)
@@ -520,7 +433,6 @@ local function createSliderFeature(name, minVal, maxVal, def, parent)
     desc.Font = Enum.Font.Gotham
     desc.TextSize = 11
     desc.TextXAlignment = Enum.TextXAlignment.Left
-    desc.TextWrapped = true
     
     local bar = Instance.new("Frame", frame)
     bar.Size = UDim2.new(1, -30, 0, 8)
@@ -564,32 +476,20 @@ local function createSliderFeature(name, minVal, maxVal, def, parent)
             val.Text = tostring(v)
             TweenService:Create(fill, TweenInfo.new(0.1), {Size = UDim2.new(pos, 0, 1, 0)}):Play()
             
-            -- Apply Walkspeed
-            if name == "walkspeed" then
-                local char = player.Character
-                if char then
-                    local humanoid = char:FindFirstChildOfClass("Humanoid")
-                    if humanoid then
-                        humanoid.WalkSpeed = v
-                    end
-                end
-            end
-            
-            -- Apply JumpPower
-            if name == "jumppower" then
-                local char = player.Character
-                if char then
-                    local humanoid = char:FindFirstChildOfClass("Humanoid")
-                    if humanoid then
-                        humanoid.JumpPower = v
-                    end
+            local char = player.Character
+            if char then
+                local hum = char:FindFirstChildOfClass("Humanoid")
+                if hum then
+                    if name == "walkspeed" then hum.WalkSpeed = v end
+                    if name == "jumppower" then hum.JumpPower = v end
                 end
             end
         end
     end)
 end
 
-local function createInfoFeature(name, value, parent)
+-- Create Info Feature
+local function createInfo(name, value, parent)
     local frame = Instance.new("Frame", parent)
     frame.Size = UDim2.new(1, -10, 0, 80)
     frame.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
@@ -618,6 +518,7 @@ local function createInfoFeature(name, value, parent)
     valueLabel.TextXAlignment = Enum.TextXAlignment.Left
 end
 
+-- Load Menu Function
 local currentMenu = nil
 local menuBtns = {}
 
@@ -637,24 +538,25 @@ local function loadMenu(key)
     
     clearContent()
     
-    local features = currentConfig.features[key]
+    local features = gameConfig.features[key]
     if features then
         for _, f in ipairs(features) do
             if f.type == "toggle" then
-                createToggleFeature(f.name, ContentArea)
+                createToggle(f.name, ContentArea)
             elseif f.type == "slider" then
-                createSliderFeature(f.name, f.min, f.max, f.default, ContentArea)
+                createSlider(f.name, f.min, f.max, f.default, ContentArea)
             elseif f.type == "info" then
-                createInfoFeature(f.name, f.value, ContentArea)
+                createInfo(f.name, f.value, ContentArea)
             end
         end
     end
     
-    task.wait(0.1)
+    wait(0.1)
     ContentArea.CanvasSize = UDim2.new(0, 0, 0, ContentList.AbsoluteContentSize.Y + 20)
 end
 
-for i, key in ipairs(currentConfig.menus) do
+-- Create Menu Buttons
+for i, key in ipairs(gameConfig.menus) do
     local btn = Instance.new("TextButton", MenuSidebar)
     btn.Size = UDim2.new(1, -10, 0, 45)
     btn.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
@@ -668,14 +570,19 @@ for i, key in ipairs(currentConfig.menus) do
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
     
     menuBtns[key] = btn
-    btn.MouseButton1Click:Connect(function() loadMenu(key) end)
+    btn.MouseButton1Click:Connect(function() 
+        print("Menu clicked:", key)
+        loadMenu(key) 
+    end)
 end
 
-if #currentConfig.menus > 0 then
-    loadMenu(currentConfig.menus[1])
+-- Load first menu
+print("Loading first menu...")
+if #gameConfig.menus > 0 then
+    loadMenu(gameConfig.menus[1])
 end
 
--- TOGGLE BUTTON (DRAGGABLE & FIXED)
+-- Toggle Button
 local ToggleFrame = Instance.new("Frame", ScreenGui)
 ToggleFrame.Size = UDim2.new(0, 60, 0, 60)
 ToggleFrame.Position = UDim2.new(0, 20, 0, 20)
@@ -686,7 +593,6 @@ ToggleFrame.ZIndex = 10
 
 Instance.new("UICorner", ToggleFrame).CornerRadius = UDim.new(0, 12)
 
--- Purple border
 local ToggleBorder = Instance.new("UIStroke", ToggleFrame)
 ToggleBorder.Color = Color3.fromRGB(138, 43, 226)
 ToggleBorder.Thickness = 2
@@ -695,7 +601,7 @@ local ToggleLogo = Instance.new("ImageLabel", ToggleFrame)
 ToggleLogo.Size = UDim2.new(1, -16, 1, -16)
 ToggleLogo.Position = UDim2.new(0, 8, 0, 8)
 ToggleLogo.BackgroundTransparency = 1
-ToggleLogo.Image = LOGO_TEXTURE_ID
+ToggleLogo.Image = LOGO_ID
 ToggleLogo.ScaleType = Enum.ScaleType.Fit
 ToggleLogo.ZIndex = 11
 
@@ -707,23 +613,15 @@ ToggleBtn.BackgroundTransparency = 1
 ToggleBtn.Text = ""
 ToggleBtn.ZIndex = 12
 
--- Dragging system
+-- Dragging
 local dragging = false
-local dragInput
-local dragStart
-local startPos
-
-local function updateInput(input)
-    local delta = input.Position - dragStart
-    ToggleFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-end
+local dragInput, dragStart, startPos
 
 ToggleBtn.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
         dragStart = input.Position
         startPos = ToggleFrame.Position
-        
         input.Changed:Connect(function()
             if input.UserInputState == Enum.UserInputState.End then
                 dragging = false
@@ -740,27 +638,20 @@ end)
 
 UserInputService.InputChanged:Connect(function(input)
     if input == dragInput and dragging then
-        updateInput(input)
+        local delta = input.Position - dragStart
+        ToggleFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
 end)
 
 -- Main frame dragging
 local mainDragging = false
-local mainDragInput
-local mainDragStart
-local mainStartPos
-
-local function updateMainFrame(input)
-    local delta = input.Position - mainDragStart
-    MainFrame.Position = UDim2.new(mainStartPos.X.Scale, mainStartPos.X.Offset + delta.X, mainStartPos.Y.Scale, mainStartPos.Y.Offset + delta.Y)
-end
+local mainDragInput, mainDragStart, mainStartPos
 
 HeaderFrame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         mainDragging = true
         mainDragStart = input.Position
         mainStartPos = MainFrame.Position
-        
         input.Changed:Connect(function()
             if input.UserInputState == Enum.UserInputState.End then
                 mainDragging = false
@@ -777,10 +668,12 @@ end)
 
 UserInputService.InputChanged:Connect(function(input)
     if input == mainDragInput and mainDragging then
-        updateMainFrame(input)
+        local delta = input.Position - mainDragStart
+        MainFrame.Position = UDim2.new(mainStartPos.X.Scale, mainStartPos.X.Offset + delta.X, mainStartPos.Y.Scale, mainStartPos.Y.Offset + delta.Y)
     end
 end)
 
+-- Toggle GUI Open/Close
 local isOpen = true
 
 ToggleBtn.MouseButton1Click:Connect(function()
@@ -799,6 +692,7 @@ ToggleBtn.MouseButton1Click:Connect(function()
     end
 end)
 
+-- Startup Animation
 MainFrame.Size = UDim2.new(0, 0, 0, 0)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 wait(0.1)
@@ -809,4 +703,5 @@ TweenService:Create(MainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Back), {
 
 wait(0.5)
 createNotification(getText("hubActive"), getText("loadSuccess"), 5)
-print("✅ Archeron Hub loaded!")
+print("✅ Archeron Hub loaded successfully!")
+print("📋 Features loaded:", #gameConfig.menus, "menus")
