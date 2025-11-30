@@ -73,7 +73,6 @@ local noclipConnection = nil
 
 -- Connect Remote
 local function connectRemote(key, path)
-local function connectRemote(key, path)
     if not path then 
         print("❌ No path for:", key)
         return nil 
