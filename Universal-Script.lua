@@ -45,6 +45,7 @@ local gameConfig = {
     features = {
         menuMain = {
             {name = "collectAllStick", type = "toggle"},
+            {name = "autoClick", type = "toggle"},
         },
         menuPlayer = {
             {name = "fly", type = "toggle"},
