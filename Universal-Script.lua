@@ -57,7 +57,7 @@ local gameConfig = {
             {name = "owner", type = "info", value = "Archeron"}
         }
     },
-    remotePath = {
+    remotePaths = { 
         pickup = "ReplicatedStorage.Events.PickUp",
         click = "ReplicatedStorage.Events.Click",  
     },
@@ -66,14 +66,19 @@ local gameConfig = {
 
 
 local LOGO_ID = "rbxassetid://139400776308881"
-local RemoteEvent = {}
+local RemoteEvents = {}
 local featureStates = {}
 local flyConnection = nil
 local noclipConnection = nil
 
 -- Connect Remote
 local function connectRemote(key, path)
-    if not path then return nil end
+local function connectRemote(key, path)
+    if not path then 
+        print("❌ No path for:", key)
+        return nil 
+    end
+    print("🔍 Connecting:", key, "at", path)
     local success, result = pcall(function()
         local parts = string.split(path, ".")
         local current = game:GetService(parts[1])
@@ -83,8 +88,10 @@ local function connectRemote(key, path)
         return current
     end)
     if success and result then
-        RemoteEvents[key] = result
+        RemoteEvents[key] = result  
         print("✅ Remote connected:", key)
+    else
+        print("❌ Failed:", key, result)
     end
     return result
 end
@@ -92,7 +99,7 @@ end
 task.spawn(function()
     wait(2)
     -- Connect semua remote
-    for key, path in pairs(gameConfig.remotePaths) do
+    for key, path in pairs(gameConfig.remotePaths) do  
         connectRemote(key, path)
     end
 end)
@@ -250,7 +257,10 @@ ContentPad.PaddingRight = UDim.new(0, 10)
 
 -- Create Toggle Feature
 local function createToggle(name, parent)
-    featureStates[name] = false
+    -- JANGAN set false kalau udah ada state sebelumnya
+    if featureStates[name] == nil then
+        featureStates[name] = false
+    end
     
     local frame = Instance.new("Frame", parent)
     frame.Size = UDim2.new(1, -10, 0, 70)
@@ -283,9 +293,10 @@ local function createToggle(name, parent)
     local btn = Instance.new("TextButton", frame)
     btn.Size = UDim2.new(0, 70, 0, 35)
     btn.Position = UDim2.new(1, -85, 0.5, -17.5)
-    btn.BackgroundColor3 = Color3.fromRGB(200, 100, 100)
+    -- SET button sesuai state yang sebenarnya
+    btn.BackgroundColor3 = featureStates[name] and Color3.fromRGB(100, 200, 100) or Color3.fromRGB(200, 100, 100)
     btn.BorderSizePixel = 0
-    btn.Text = "OFF"
+    btn.Text = featureStates[name] and "ON" or "OFF"  -- SET text sesuai state
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.GothamBold
     btn.TextSize = 14
@@ -303,38 +314,45 @@ local function createToggle(name, parent)
             createNotification(getText(name), getText("statusEnabled"), 3)
             
             if name == "collectAllStick" then
+    print("🔄 Activating collectAllStick...")
     if not RemoteEvents.pickup then 
         connectRemote("pickup", gameConfig.remotePaths.pickup) 
         wait(0.5) 
     end
     if RemoteEvents.pickup then
+        print("✅ Starting collect loop")
         loop = RunService.Heartbeat:Connect(function()
             if featureStates[name] then
                 pcall(function()
                     RemoteEvents.pickup:FireServer("Stick")
-                    RemoteEvents.pickup:FireServer("GoldStick")
+                    RemoteEvents.pickup:FireServer("Gold stick")
                     RemoteEvents.pickup:FireServer("ShadowStick")
                 end)
                 wait(0.1)
             end
         end)
+    else
+        print("❌ RemoteEvents.pickup not found!")
     end
 
--- AUTO CLICK 
 elseif name == "autoClick" then
+    print("🔄 Activating autoClick...")
     if not RemoteEvents.click then 
         connectRemote("click", gameConfig.remotePaths.click) 
         wait(0.5) 
     end
     if RemoteEvents.click then
+        print("✅ Starting click loop")
         loop = RunService.Heartbeat:Connect(function()
             if featureStates[name] then
                 pcall(function()
                     RemoteEvents.click:FireServer()
                 end)
-                wait(0.05)  -- Delay, bisa disesuaikan
+                wait(0.05)
             end
         end)
+    else
+        print("❌ RemoteEvents.click not found!")
     end
             
             elseif name == "fly" then
