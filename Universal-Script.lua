@@ -96,6 +96,7 @@ task.spawn(function()
     end
 end)
 
+
 -- Create GUI
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "ArcheronHub"
@@ -301,32 +302,39 @@ local function createToggle(name, parent)
             createNotification(getText(name), getText("statusEnabled"), 3)
             
             if name == "collectAllStick" then
-                if not RemoteEvent then connectRemote() wait(0.5) end
-                if RemoteEvent then
-                    loop = RunService.Heartbeat:Connect(function()
-                        if featureStates[name] then
-                            pcall(function()
-                                RemoteEvent:FireServer("Stick")
-                                RemoteEvent:FireServer("Gold stick")
-                                RemoteEvent:FireServer("ShadowStick")
-                            end)
-                            wait(0.1)
-                        end
-                    end)
-                end
-
-             elseif name == "autoClick" then
-            if not RemoteEvents.click then connectRemote("click", gameConfig.remotePaths.click) wait(0.5) end
-            if RemoteEvents.click then
-                loop = RunService.Heartbeat:Connect(function()
-                    if featureStates[name] then
-                        pcall(function()
-                            RemoteEvents.click:FireServer()
-                        end)
-                        wait(0.1)  -- Delay kecil biar gak lag, bisa disesuaikan
-                    end
+    if not RemoteEvents.pickup then 
+        connectRemote("pickup", gameConfig.remotePaths.pickup) 
+        wait(0.5) 
+    end
+    if RemoteEvents.pickup then
+        loop = RunService.Heartbeat:Connect(function()
+            if featureStates[name] then
+                pcall(function()
+                    RemoteEvents.pickup:FireServer("Stick")
+                    RemoteEvents.pickup:FireServer("GoldStick")
+                    RemoteEvents.pickup:FireServer("ShadowStick")
                 end)
-                    end
+                wait(0.1)
+            end
+        end)
+    end
+
+-- AUTO CLICK 
+elseif name == "autoClick" then
+    if not RemoteEvents.click then 
+        connectRemote("click", gameConfig.remotePaths.click) 
+        wait(0.5) 
+    end
+    if RemoteEvents.click then
+        loop = RunService.Heartbeat:Connect(function()
+            if featureStates[name] then
+                pcall(function()
+                    RemoteEvents.click:FireServer()
+                end)
+                wait(0.05)  -- Delay, bisa disesuaikan
+            end
+        end)
+    end
             
             elseif name == "fly" then
                 local char = player.Character
