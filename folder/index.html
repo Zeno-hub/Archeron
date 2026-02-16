@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clicker Game - Rebirth System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 CLICKER GAME</h1>
+        
+        <button class="settings-btn" onclick="toggleSettings()">
+    ⚙
+</button>
+
+<!-- LOGIN SCREEN -->
+<div id="authScreen" class="auth-screen">
+  <div class="auth-box">
+    <h2>Account</h2>
+
+    <input id="authUser" placeholder="Username">
+    <input id="authPass" type="password" placeholder="Password">
+
+    <button onclick="register()">Register</button>
+    <button onclick="login()">Login</button>
+  </div>
+</div>
+
+<!-- AVATAR TOP LEFT -->
+<div id="profileBtn" class="profile-btn" onclick="openProfile()">
+  <img id="profileImg">
+</div>
+
+<!-- PROFILE POPUP -->
+<div id="profilePopup" class="profile-popup">
+  <div class="profile-box">
+    <img id="profilePreview">
+    <div id="profileName"></div>
+    <div id="profileID"></div>
+    <button onclick="copyID()">Copy ID</button>
+    <button onclick="closeProfile()">Close</button>
+  </div>
+</div>
+
+<!-- IMAGE UPLOAD -->
+<input type="file" id="avatarUpload" accept="image/*" hidden>
+        
+        <!-- Tab Navigation -->
+        <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('game')">🎮 Game</button>
+    <button class="tab-btn" onclick="showTab('Rebirth')">Rebirth</button>
+    <button class="tab-btn" onclick="showTab('gacha')">🎲 Gacha</button>
+</div>
+
+        <!-- Game Tab -->
+        <div id="game-tab" class="tab-content active">
+            <div class="stats">
+                <div class="clicks" id="clickCount">0</div>
+                <div class="info" id="info">
+                    Click Power: <span id="clickPower">1</span> • Delay: 1.0s
+                </div>
+                <div class="Rebirth-stats">
+                    Total Rebirth: <span id="totalRebirthDisplay">0</span> • 
+                    Multiplier: <span id="multiplierDisplay">1.0x</span>
+                </div>
+            </div>
+
+            <div class="click-area">
+                <button class="click-button" id="clickBtn">
+                    <img src="cursor-click.jpg" alt="Click">
+                </button>
+            </div>
+
+            <div class="upgrades">
+                <div class="upgrade">
+                    <div class="upgrade-header">
+                        <span class="upgrade-name">🔥 Click Power</span>
+                        <span class="upgrade-cost"><span id="cost-clickPower">10</span> clicks</span>
+                    </div>
+                    <div class="upgrade-info">+1 Power per click</div>
+                    <div class="upgrade-level">Level: <span id="level-clickPower">0</span></div>
+                    <div class="upgrade-buttons">
+                        <button class="buy-btn" onclick="buyUpgrade('clickPower', 1)">Buy 1x</button>
+                        <button class="buy-btn buy-max" onclick="buyUpgrade('clickPower', 'max')">Buy MAX</button>
+                    </div>
+                </div>
+
+                <div class="upgrade">
+                    <div class="upgrade-header">
+                        <span class="upgrade-name">🤖 Auto-Clicker</span>
+                        <span class="upgrade-cost"><span id="cost-autoClicker">100</span> clicks</span>
+                    </div>
+                    <div class="upgrade-info">Generates <span id="autoClickerCPS">0</span> clicks/sec</div>
+                    <div class="upgrade-level">Count: <span id="level-autoClicker">0</span></div>
+                    <div class="upgrade-buttons">
+                        <button class="buy-btn" onclick="buyUpgrade('autoClicker', 1)">Buy 1x</button>
+                        <button class="buy-btn buy-max" onclick="buyUpgrade('autoClicker', 'max')">Buy MAX</button>
+                    </div>
+                </div>
+
+                <div class="upgrade">
+                    <div class="upgrade-header">
+                        <span class="upgrade-name">⚡ Speed Enhancer</span>
+                        <span class="upgrade-cost"><span id="cost-speedEnhancer">1,000</span> clicks</span>
+                    </div>
+                    <div class="upgrade-info">Reduces auto-clicker delay by 0.1s (1.0s → 0.1s)</div>
+                    <div class="upgrade-level">Level: <span id="level-speedEnhancer">0</span>/10</div>
+                    <div class="upgrade-buttons">
+                        <button class="buy-btn" onclick="buyUpgrade('speedEnhancer', 1)">Buy 1x</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rebirth Tab -->
+        <div id="Rebirth-tab" class="tab-content">
+            <div class="Rebirth-header">
+                <h2>
+    <img src="Rebirth-icon.webp" class="icon-lg">
+    Rebirth System
+</h2>
+                <p class="Rebirth-description">
+                    Reset your progress to gain permanent multipliers!<br>
+                    Each Rebirth increases your multiplier by 0.1x
+                </p>
+            </div>
+
+            <div class="Rebirth-info-box">
+                <div class="Rebirth-stat">
+                    <span class="label">Current Multiplier:</span>
+                    <span class="value" id="currentMultiplier">1.0x</span>
+                </div>
+                <div class="Rebirth-stat">
+                    <span class="label">Total Rebirth:</span>
+                    <span class="value" id="totalRebirth">0</span>
+                </div>
+                <div class="Rebirth-stat">
+                    <span class="label">Next Rebirth Bonus:</span>
+                    <span class="value">+0.1x</span>
+                </div>
+            </div>
+
+            <div id="RebirthOptions" class="Rebirth-grid">
+                <!-- Rebirth cards will be generated here by JavaScript -->
+            </div>
+
+            <div class="Rebirth-pagination">
+                <button class="Rebirth-nav-btn" id="RebirthPrevBtn" onclick="previousRebirthPage()">◀</button>
+                <span class="Rebirth-page-info" id="RebirthPageInfo">Page 1 of 5</span>
+                <button class="Rebirth-nav-btn" id="RebirthNextBtn" onclick="nextRebirthPage()">▶</button>
+            </div>
+        </div>
+  
+<!-- Gacha Tab -->
+<div id="gacha-tab" class="tab-content">
+    <div class="gacha-header">
+        <h2>🎲 Gacha System</h2>
+        <p>Pull telur untuk dapat pet dengan rarity berbeda! Semakin kecil rarity, semakin kuat stats-nya.</p>
+    </div>
+
+    <div class="gacha-grid">
+        <!-- 5 Gacha Telur akan di-generate di sini oleh JS -->
+    </div>
+
+    <div class="inventory-section">
+        <h3>🐾 Your Pets</h3>
+        <div id="petInventory" class="pet-grid">
+            <!-- Pets yang didapat akan ditampilkan di sini -->
+        </div>
+    </div>
+</div>
+    </div>
+    
+         
+
+    
+    <audio id="clickSound" src="sound/click.mp3" preload="auto"></audio>
+    
+    <div id="settingsPanel" class="settings-panel">
+    <h3>⚙ Settings</h3>
+
+    <div class="setting-item">
+        <span>Click Sound</span>
+        <label class="switch">
+            <input type="checkbox" id="toggleClickSound" checked>
+            <span class="slider"></span>
+        </label>
+    </div>
+</div>
+
+    <script src="script.js"></script>
+</body>
+</html>
