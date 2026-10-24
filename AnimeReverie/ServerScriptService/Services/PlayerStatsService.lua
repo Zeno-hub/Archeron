@@ -17,6 +17,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local GameConfig = require(ReplicatedStorage.Configurations.GameConfig)
 local StatFormulas = require(ReplicatedStorage.SharedModules.StatFormulas)
+local WorldConfig = require(ReplicatedStorage.Configurations.WorldConfig)
 local DataService = require(script.Parent.DataService)
 
 local PlayerStatsService = {}
@@ -209,6 +210,44 @@ end
 function PlayerStatsService.TrySpendGems(player, amount)
 	return changeCurrency(player, "Gems", amount, true)
 end
+-- EXP bonus (mis. reward quest). Level-up memicu callback seperti kill. Return: jumlah level naik ATAU nil, alasan.
+function PlayerStatsService.AddEXP(player, amount)
+	local data, state = DataService.GetData(player), runtime[player]
+	if not data or not state then return nil, "NoProfile" end
+	local oldLevel = data.Level
+	local levels = StatFormulas.ApplyEXP(data, amount)
+	state.Dirty = true
+	if levels > 0 then
+		state.DerivedDirty = true
+		local info = { OldLevel = oldLevel, NewLevel = data.Level, LevelsGained = levels, StatPointsAwarded = levels * GameConfig.EXP.StatPointsPerLevel }
+		for _, callback in levelUpCallbacks do task.spawn(callback, player, info) end
+	end
+	return levels
+end
+
+-- Syarat masuk world: Lobby (0) selalu boleh; world 1-5 butuh Level >= RequiredLevel (WorldConfig).
+function PlayerStatsService.CanEnterWorld(player, worldId)
+	local data = DataService.GetData(player)
+	local world = type(worldId) == "number" and WorldConfig.Get(worldId) or nil
+	if not data or not world then return false end
+	return worldId == 0 or data.Level >= world.RequiredLevel
+end
+
+-- Ganti world SAAT INI (hanya data; teleport fisik = WorldService, belum ada). Syarat: CanEnterWorld (level).
+-- HighestWorldUnlocked = world tertinggi yang pernah dimasuki (catatan progres). Return: ok, alasan
+function PlayerStatsService.SetCurrentWorld(player, worldId: any)
+	local data, state = DataService.GetData(player), runtime[player]
+	if not data or not state then return false, "NoProfile" end
+	if type(worldId) ~= "number" or worldId ~= math.floor(worldId) then return false, "InvalidWorld" end
+	local world = WorldConfig.Get(worldId)
+	if not world then return false, "InvalidWorld" end
+	if worldId > 0 and data.Level < world.RequiredLevel then return false, "WorldLocked" end
+	data.CurrentWorld = worldId
+	data.HighestWorldUnlocked = math.max(data.HighestWorldUnlocked, worldId)
+	state.Dirty = true
+	return true
+end
+
 function PlayerStatsService.AddStars(player, amount)
 	return changeCurrency(player, "Stars", amount, false)
 end
@@ -260,6 +299,7 @@ end
 
 local function onProfileLoaded(player, profile)
 	StatFormulas.SanitizeData(profile.Data)
+	profile.Data.CurrentWorld = 0 -- pemain selalu mulai di Lobby
 	local state = { DerivedDirty = true, Dirty = true, PlaytimeMark = os.time() }
 	runtime[player] = state
 	createLeaderstats(player, state)

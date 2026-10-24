@@ -16,6 +16,8 @@ if not RunService:IsStudio() or not GameConfig.Dev.EnableDevTools then
 end
 
 local PlayerStatsService = require(ServerScriptService:WaitForChild("Services"):WaitForChild("PlayerStatsService"))
+local CombatService = require(ServerScriptService:WaitForChild("Services"):WaitForChild("CombatService"))
+local EnemyConfig = require(ReplicatedStorage.Configurations.EnemyConfig)
 
 local function makeButton(label, offsetZ, color, handler)
 	local part = Instance.new("Part")
@@ -83,4 +85,24 @@ makeButton("Print full stats", 24, Color3.fromRGB(180, 180, 180), function(playe
 			print(("[DEV] %s = %s"):format(key, tostring(value)))
 		end
 	end
+end)
+
+makeButton("Toggle world Lobby/World 1", 30, Color3.fromRGB(150, 100, 220), function(player)
+	local stats = PlayerStatsService.GetStats(player)
+	local ok, reason = PlayerStatsService.SetCurrentWorld(player, stats.CurrentWorld == 0 and 1 or 0)
+	print("[DEV] set world ->", ok, reason, "| sekarang:", PlayerStatsService.GetStats(player).CurrentWorld, "(hanya data, belum teleport)")
+end)
+
+makeButton("Click first enemy of current world", 36, Color3.fromRGB(240, 140, 60), function(player)
+	local ids = EnemyConfig.ByWorld[PlayerStatsService.GetStats(player).CurrentWorld]
+	if not ids then
+		print("[DEV] di Lobby tidak ada musuh")
+		return
+	end
+	local result, reason = CombatService.HandleClick(player, ids[1])
+	if not result then
+		print("[DEV] klik ditolak:", reason)
+		return
+	end
+	print(("[DEV] %s: +%d Power, damage %d%s, HP %d/%d%s"):format(result.EnemyId, result.PowerGained, result.Damage, result.Critical and " (CRIT)" or "", result.Hp, result.MaxHp, result.Killed and " -> MATI" or ""))
 end)

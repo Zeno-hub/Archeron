@@ -38,7 +38,7 @@ GameConfig.Attributes = {
 GameConfig.Economy = { MaxCurrency = 1e15, MaxPower = 1e15 }
 
 -- Klik attack: Power per klik dasar (dikali pet/gacha/upgrade). MaxClicksPerSecond untuk ClickService (BELUM ada).
-GameConfig.Click = { BasePowerPerClick = 5, MaxClicksPerSecond = 12 }
+GameConfig.Click = { BasePowerPerClick = 5, MaxClicksPerSecond = 12, MaxRequestsPerSecond = 30 }
 
 GameConfig.Start = {
 	Coins = 0,

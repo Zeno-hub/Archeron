@@ -26,8 +26,11 @@ MODULES = {
     "GachaConfig": "ReplicatedStorage/Configurations/GachaConfig.lua",
     "QuestLogic": "ReplicatedStorage/SharedModules/QuestLogic.lua",
     "GachaLogic": "ReplicatedStorage/SharedModules/GachaLogic.lua",
+    "Remotes": "ServerScriptService/Services/Remotes.lua",
+    "CombatService": "ServerScriptService/Services/CombatService.lua",
+    "QuestService": "ServerScriptService/Services/QuestService.lua",
 }
-TEST_FILES = ["test_core.lua", "test_integration.lua", "test_gameplay.lua"]
+TEST_FILES = ["test_core.lua", "test_integration.lua", "test_gameplay.lua", "test_services.lua"]
 REQUIRE = re.compile(r"require\(\s*(?:\w+\.)*(\w+)\s*\)")
 
 

@@ -12,7 +12,12 @@ local Services = ServerScriptService:WaitForChild("Services")
 local DataService = require(Services:WaitForChild("DataService"))
 local PlayerStatsService = require(Services:WaitForChild("PlayerStatsService"))
 
+local CombatService = require(Services:WaitForChild("CombatService"))
+local QuestService = require(Services:WaitForChild("QuestService"))
+
 PlayerStatsService.Init()
--- Service Bagian B dst. ditambahkan di sini, sebelum DataService.Start()
+CombatService.Init()
+QuestService.Init()
+-- Service berikutnya ditambahkan di sini, sebelum DataService.Start()
 
 DataService.Start()

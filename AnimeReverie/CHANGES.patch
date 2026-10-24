@@ -1,6 +1,6 @@
 diff -ruN a/AnimeReverie/ReplicatedStorage/Configurations/EnemyConfig.lua b/AnimeReverie/ReplicatedStorage/Configurations/EnemyConfig.lua
 --- a/AnimeReverie/ReplicatedStorage/Configurations/EnemyConfig.lua	1970-01-01 00:00:00.000000000 +0000
-+++ b/AnimeReverie/ReplicatedStorage/Configurations/EnemyConfig.lua	2026-10-24 03:42:43.078067263 +0000
++++ b/AnimeReverie/ReplicatedStorage/Configurations/EnemyConfig.lua	2026-10-24 16:32:26.369529559 +0000
 @@ -0,0 +1,87 @@
 +--!nonstrict
 +--[[
@@ -91,7 +91,7 @@ diff -ruN a/AnimeReverie/ReplicatedStorage/Configurations/EnemyConfig.lua b/Anim
 +return deepFreeze(EnemyConfig)
 diff -ruN a/AnimeReverie/ReplicatedStorage/Configurations/GachaConfig.lua b/AnimeReverie/ReplicatedStorage/Configurations/GachaConfig.lua
 --- a/AnimeReverie/ReplicatedStorage/Configurations/GachaConfig.lua	1970-01-01 00:00:00.000000000 +0000
-+++ b/AnimeReverie/ReplicatedStorage/Configurations/GachaConfig.lua	2026-10-24 03:42:43.078643379 +0000
++++ b/AnimeReverie/ReplicatedStorage/Configurations/GachaConfig.lua	2026-10-24 16:32:26.370113216 +0000
 @@ -0,0 +1,47 @@
 +--!nonstrict
 +--[[
@@ -141,8 +141,8 @@ diff -ruN a/AnimeReverie/ReplicatedStorage/Configurations/GachaConfig.lua b/Anim
 +end
 +return deepFreeze(GachaConfig)
 diff -ruN a/AnimeReverie/ReplicatedStorage/Configurations/GameConfig.lua b/AnimeReverie/ReplicatedStorage/Configurations/GameConfig.lua
---- a/AnimeReverie/ReplicatedStorage/Configurations/GameConfig.lua	2026-10-24 03:42:43.072034522 +0000
-+++ b/AnimeReverie/ReplicatedStorage/Configurations/GameConfig.lua	2026-10-24 03:42:43.078959211 +0000
+--- a/AnimeReverie/ReplicatedStorage/Configurations/GameConfig.lua	2026-10-24 16:32:26.366756435 +0000
++++ b/AnimeReverie/ReplicatedStorage/Configurations/GameConfig.lua	2026-10-24 16:32:26.370721987 +0000
 @@ -12,7 +12,7 @@
  	NormalKillBaseEXP = 1, -- ATURAN INTI: tiap kill musuh normal = tepat +1 EXP dasar
  	RequiredBase = 10, -- RequiredEXP = floor(RequiredBase * Level ^ RequiredExponent)
@@ -169,7 +169,7 @@ diff -ruN a/AnimeReverie/ReplicatedStorage/Configurations/GameConfig.lua b/Anime
 +GameConfig.Economy = { MaxCurrency = 1e15, MaxPower = 1e15 }
 +
 +-- Klik attack: Power per klik dasar (dikali pet/gacha/upgrade). MaxClicksPerSecond untuk ClickService (BELUM ada).
-+GameConfig.Click = { BasePowerPerClick = 5, MaxClicksPerSecond = 12 }
++GameConfig.Click = { BasePowerPerClick = 5, MaxClicksPerSecond = 12, MaxRequestsPerSecond = 30 }
  
  GameConfig.Start = {
  	Coins = 0,
@@ -199,7 +199,7 @@ diff -ruN a/AnimeReverie/ReplicatedStorage/Configurations/GameConfig.lua b/Anime
  			deepFreeze(value)
 diff -ruN a/AnimeReverie/ReplicatedStorage/Configurations/QuestConfig.lua b/AnimeReverie/ReplicatedStorage/Configurations/QuestConfig.lua
 --- a/AnimeReverie/ReplicatedStorage/Configurations/QuestConfig.lua	1970-01-01 00:00:00.000000000 +0000
-+++ b/AnimeReverie/ReplicatedStorage/Configurations/QuestConfig.lua	2026-10-24 03:42:43.079220354 +0000
++++ b/AnimeReverie/ReplicatedStorage/Configurations/QuestConfig.lua	2026-10-24 16:32:26.371066087 +0000
 @@ -0,0 +1,36 @@
 +--!nonstrict
 +--[[
@@ -239,7 +239,7 @@ diff -ruN a/AnimeReverie/ReplicatedStorage/Configurations/QuestConfig.lua b/Anim
 +return deepFreeze(QuestConfig)
 diff -ruN a/AnimeReverie/ReplicatedStorage/Configurations/WorldConfig.lua b/AnimeReverie/ReplicatedStorage/Configurations/WorldConfig.lua
 --- a/AnimeReverie/ReplicatedStorage/Configurations/WorldConfig.lua	1970-01-01 00:00:00.000000000 +0000
-+++ b/AnimeReverie/ReplicatedStorage/Configurations/WorldConfig.lua	2026-10-24 03:42:43.079507065 +0000
++++ b/AnimeReverie/ReplicatedStorage/Configurations/WorldConfig.lua	2026-10-24 16:32:26.371310991 +0000
 @@ -0,0 +1,28 @@
 +--!nonstrict
 +--[[
@@ -271,7 +271,7 @@ diff -ruN a/AnimeReverie/ReplicatedStorage/Configurations/WorldConfig.lua b/Anim
 +return deepFreeze(WorldConfig)
 diff -ruN a/AnimeReverie/ReplicatedStorage/SharedModules/GachaLogic.lua b/AnimeReverie/ReplicatedStorage/SharedModules/GachaLogic.lua
 --- a/AnimeReverie/ReplicatedStorage/SharedModules/GachaLogic.lua	1970-01-01 00:00:00.000000000 +0000
-+++ b/AnimeReverie/ReplicatedStorage/SharedModules/GachaLogic.lua	2026-10-24 03:42:43.079834198 +0000
++++ b/AnimeReverie/ReplicatedStorage/SharedModules/GachaLogic.lua	2026-10-24 16:32:26.371557218 +0000
 @@ -0,0 +1,56 @@
 +--!nonstrict
 +--[[
@@ -331,7 +331,7 @@ diff -ruN a/AnimeReverie/ReplicatedStorage/SharedModules/GachaLogic.lua b/AnimeR
 +return GachaLogic
 diff -ruN a/AnimeReverie/ReplicatedStorage/SharedModules/QuestLogic.lua b/AnimeReverie/ReplicatedStorage/SharedModules/QuestLogic.lua
 --- a/AnimeReverie/ReplicatedStorage/SharedModules/QuestLogic.lua	1970-01-01 00:00:00.000000000 +0000
-+++ b/AnimeReverie/ReplicatedStorage/SharedModules/QuestLogic.lua	2026-10-24 03:42:43.080266388 +0000
++++ b/AnimeReverie/ReplicatedStorage/SharedModules/QuestLogic.lua	2026-10-24 16:32:26.371921182 +0000
 @@ -0,0 +1,51 @@
 +--!nonstrict
 +--[[
@@ -385,8 +385,8 @@ diff -ruN a/AnimeReverie/ReplicatedStorage/SharedModules/QuestLogic.lua b/AnimeR
 +
 +return QuestLogic
 diff -ruN a/AnimeReverie/ReplicatedStorage/SharedModules/StatFormulas.lua b/AnimeReverie/ReplicatedStorage/SharedModules/StatFormulas.lua
---- a/AnimeReverie/ReplicatedStorage/SharedModules/StatFormulas.lua	2026-10-24 03:42:43.072147704 +0000
-+++ b/AnimeReverie/ReplicatedStorage/SharedModules/StatFormulas.lua	2026-10-24 03:42:43.080585229 +0000
+--- a/AnimeReverie/ReplicatedStorage/SharedModules/StatFormulas.lua	2026-10-24 16:32:26.366805966 +0000
++++ b/AnimeReverie/ReplicatedStorage/SharedModules/StatFormulas.lua	2026-10-24 16:32:26.372157895 +0000
 @@ -103,6 +103,8 @@
  	end
  	data.Coins = math.min(nonNegInt(data.Coins, 0), maxCurrency)
@@ -414,7 +414,7 @@ diff -ruN a/AnimeReverie/ReplicatedStorage/SharedModules/StatFormulas.lua b/Anim
  end
  
 diff -ruN a/AnimeReverie/ServerScriptService/DevTools.lua b/AnimeReverie/ServerScriptService/DevTools.lua
---- a/AnimeReverie/ServerScriptService/DevTools.lua	2026-10-24 03:42:43.073143414 +0000
+--- a/AnimeReverie/ServerScriptService/DevTools.lua	2026-10-24 16:32:26.366834782 +0000
 +++ b/AnimeReverie/ServerScriptService/DevTools.lua	1970-01-01 00:00:00.000000000 +0000
 @@ -1,78 +0,0 @@
 ---!nonstrict
@@ -497,8 +497,8 @@ diff -ruN a/AnimeReverie/ServerScriptService/DevTools.lua b/AnimeReverie/ServerS
 -end)
 diff -ruN a/AnimeReverie/ServerScriptService/DevTools.server.lua b/AnimeReverie/ServerScriptService/DevTools.server.lua
 --- a/AnimeReverie/ServerScriptService/DevTools.server.lua	1970-01-01 00:00:00.000000000 +0000
-+++ b/AnimeReverie/ServerScriptService/DevTools.server.lua	2026-10-24 03:42:43.081114307 +0000
-@@ -0,0 +1,86 @@
++++ b/AnimeReverie/ServerScriptService/DevTools.server.lua	2026-10-24 16:32:26.372357822 +0000
+@@ -0,0 +1,108 @@
 +--!nonstrict
 +--[[
 +	DevTools | Script (server) -- HANYA AKTIF DI STUDIO
@@ -517,6 +517,8 @@ diff -ruN a/AnimeReverie/ServerScriptService/DevTools.server.lua b/AnimeReverie/
 +end
 +
 +local PlayerStatsService = require(ServerScriptService:WaitForChild("Services"):WaitForChild("PlayerStatsService"))
++local CombatService = require(ServerScriptService:WaitForChild("Services"):WaitForChild("CombatService"))
++local EnemyConfig = require(ReplicatedStorage.Configurations.EnemyConfig)
 +
 +local function makeButton(label, offsetZ, color, handler)
 +	local part = Instance.new("Part")
@@ -585,8 +587,28 @@ diff -ruN a/AnimeReverie/ServerScriptService/DevTools.server.lua b/AnimeReverie/
 +		end
 +	end
 +end)
++
++makeButton("Toggle world Lobby/World 1", 30, Color3.fromRGB(150, 100, 220), function(player)
++	local stats = PlayerStatsService.GetStats(player)
++	local ok, reason = PlayerStatsService.SetCurrentWorld(player, stats.CurrentWorld == 0 and 1 or 0)
++	print("[DEV] set world ->", ok, reason, "| sekarang:", PlayerStatsService.GetStats(player).CurrentWorld, "(hanya data, belum teleport)")
++end)
++
++makeButton("Click first enemy of current world", 36, Color3.fromRGB(240, 140, 60), function(player)
++	local ids = EnemyConfig.ByWorld[PlayerStatsService.GetStats(player).CurrentWorld]
++	if not ids then
++		print("[DEV] di Lobby tidak ada musuh")
++		return
++	end
++	local result, reason = CombatService.HandleClick(player, ids[1])
++	if not result then
++		print("[DEV] klik ditolak:", reason)
++		return
++	end
++	print(("[DEV] %s: +%d Power, damage %d%s, HP %d/%d%s"):format(result.EnemyId, result.PowerGained, result.Damage, result.Critical and " (CRIT)" or "", result.Hp, result.MaxHp, result.Killed and " -> MATI" or ""))
++end)
 diff -ruN a/AnimeReverie/ServerScriptService/Main.lua b/AnimeReverie/ServerScriptService/Main.lua
---- a/AnimeReverie/ServerScriptService/Main.lua	2026-10-24 03:42:43.073345022 +0000
+--- a/AnimeReverie/ServerScriptService/Main.lua	2026-10-24 16:32:26.366871745 +0000
 +++ b/AnimeReverie/ServerScriptService/Main.lua	1970-01-01 00:00:00.000000000 +0000
 @@ -1,18 +0,0 @@
 ---!nonstrict
@@ -609,8 +631,8 @@ diff -ruN a/AnimeReverie/ServerScriptService/Main.lua b/AnimeReverie/ServerScrip
 -DataService.Start()
 diff -ruN a/AnimeReverie/ServerScriptService/Main.server.lua b/AnimeReverie/ServerScriptService/Main.server.lua
 --- a/AnimeReverie/ServerScriptService/Main.server.lua	1970-01-01 00:00:00.000000000 +0000
-+++ b/AnimeReverie/ServerScriptService/Main.server.lua	2026-10-24 03:42:43.081634102 +0000
-@@ -0,0 +1,18 @@
++++ b/AnimeReverie/ServerScriptService/Main.server.lua	2026-10-24 16:32:26.372675775 +0000
+@@ -0,0 +1,23 @@
 +--!nonstrict
 +--[[
 +	Main | Script (server)
@@ -625,13 +647,125 @@ diff -ruN a/AnimeReverie/ServerScriptService/Main.server.lua b/AnimeReverie/Serv
 +local DataService = require(Services:WaitForChild("DataService"))
 +local PlayerStatsService = require(Services:WaitForChild("PlayerStatsService"))
 +
++local CombatService = require(Services:WaitForChild("CombatService"))
++local QuestService = require(Services:WaitForChild("QuestService"))
++
 +PlayerStatsService.Init()
-+-- Service Bagian B dst. ditambahkan di sini, sebelum DataService.Start()
++CombatService.Init()
++QuestService.Init()
++-- Service berikutnya ditambahkan di sini, sebelum DataService.Start()
 +
 +DataService.Start()
+diff -ruN a/AnimeReverie/ServerScriptService/Services/CombatService.lua b/AnimeReverie/ServerScriptService/Services/CombatService.lua
+--- a/AnimeReverie/ServerScriptService/Services/CombatService.lua	1970-01-01 00:00:00.000000000 +0000
++++ b/AnimeReverie/ServerScriptService/Services/CombatService.lua	2026-10-24 16:32:26.372914525 +0000
+@@ -0,0 +1,103 @@
++--!nonstrict
++--[[
++	CombatService | ModuleScript | ServerScriptService > Services > CombatService
++	Klik attack -> Power -> damage ke musuh DIAM -> kill -> reward -> quest. Semua otoritatif di server.
++
++	ATURAN POWER: Power hanya dari klik valid (target ada, world benar, level cukup, di bawah rate limit). Power diberikan
++	INDEPENDEN dari damage, HP, status hidup/mati NPC, dan kill. Kill TIDAK memberi Power; kill hanya memberi EXP/koin/Stars
++	dan progres quest sesuai config. Klik valid ke NPC yang sedang mati tetap memberi Power (tanpa damage/reward kill).
++
++	Musuh tidak bergerak/menyerang: state-nya hanya HP + hidup/mati + respawn. Hit reaction & animasi = tugas client
++	(Remote "HitResult"); BELUM dibuat. Satu instance per enemyId per server (target bersama; kill dikreditkan ke pemukul
++	terakhir; target mati tidak bisa dibunuh lagi -> reward tidak ganda).
++	Batas: klik/detik (MaxClicksPerSecond) dan request remote/detik (MaxRequestsPerSecond, semua payload termasuk invalid;
++	kelebihan DIBUANG tanpa balasan). Jendela per detik (os.time): burst di batas detik bisa sampai ~2x.
++	Remote "ClickAttack"(enemyId: string) atau langsung dari server: HandleClick(player, enemyId).
++]]
++local ReplicatedStorage = game:GetService("ReplicatedStorage")
++
++local GameConfig = require(ReplicatedStorage.Configurations.GameConfig)
++local EnemyConfig = require(ReplicatedStorage.Configurations.EnemyConfig)
++local QuestConfig = require(ReplicatedStorage.Configurations.QuestConfig)
++local StatFormulas = require(ReplicatedStorage.SharedModules.StatFormulas)
++local QuestLogic = require(ReplicatedStorage.SharedModules.QuestLogic)
++local DataService = require(script.Parent.DataService)
++local PlayerStatsService = require(script.Parent.PlayerStatsService)
++local Remotes = require(script.Parent.Remotes)
++
++local CombatService = {}
++local enemies = {} -- [enemyId] = { Hp, Alive }
++local clicks = {} -- [player] = { Second, Count }  (klik valid)
++local requests = {} -- [player] = { Second, Count } (semua request remote)
++
++local function stateOf(id, enemy)
++	local s = enemies[id]
++	if not s then
++		s = { Hp = enemy.MaxHealth, Alive = true }
++		enemies[id] = s
++	end
++	return s
++end
++
++local function bump(bucketTable, player)
++	local now = os.time()
++	local bucket = bucketTable[player]
++	if not bucket or bucket.Second ~= now then
++		bucket = { Second = now, Count = 0 }
++		bucketTable[player] = bucket
++	end
++	bucket.Count += 1
++	return bucket.Count
++end
++
++-- Return: hasil (tabel) ATAU nil, alasan. Alasan: NoProfile, InvalidTarget, WrongWorld, WorldLocked, RateLimited
++function CombatService.HandleClick(player, enemyId)
++	local data = DataService.GetData(player)
++	if not data then return nil, "NoProfile" end
++	local enemy = type(enemyId) == "string" and EnemyConfig.Enemies[enemyId] or nil
++	if not enemy then return nil, "InvalidTarget" end
++	if data.CurrentWorld ~= enemy.WorldId then return nil, "WrongWorld" end
++	if not PlayerStatsService.CanEnterWorld(player, enemy.WorldId) then return nil, "WorldLocked" end
++	if bump(clicks, player) > GameConfig.Click.MaxClicksPerSecond then return nil, "RateLimited" end
++
++	-- Klik valid: Power SELALU diberikan di sini (sebelum mengecek HP/hidup-mati NPC), lalu damage dihitung dari Power terbaru.
++	local powerGained = PlayerStatsService.AwardClick(player)
++	local state = stateOf(enemyId, enemy)
++	local result = {
++		EnemyId = enemyId, Damage = 0, Critical = false, Hp = state.Hp, MaxHp = enemy.MaxHealth,
++		Killed = false, PowerGained = powerGained, TargetAlive = state.Alive,
++	}
++	if not state.Alive then return result end -- NPC mati/vanish: tidak ada damage, tidak ada reward kill
++
++	local damage, critical = StatFormulas.RollHit(PlayerStatsService.GetDerived(player))
++	state.Hp = math.max(0, state.Hp - damage)
++	result.Damage, result.Critical, result.Hp = damage, critical, state.Hp
++
++	if state.Hp <= 0 then
++		state.Alive = false
++		result.Killed, result.TargetAlive = true, false
++		-- Reward kill: EXP/koin/Stars/quest saja. TIDAK ADA Power di jalur ini.
++		result.Kill = PlayerStatsService.AwardKill(player, { Kind = enemy.Kind, BossBonusEXP = enemy.BossBonusEXP })
++		PlayerStatsService.AddCoins(player, enemy.CoinReward)
++		if enemy.StarsReward > 0 then PlayerStatsService.AddStars(player, enemy.StarsReward) end
++		result.QuestsCompleted = QuestLogic.OnKill(data.Quests, QuestConfig.List, enemy.WorldId, enemyId)
++		task.delay(enemy.RespawnSeconds, function()
++			state.Hp, state.Alive = enemy.MaxHealth, true
++		end)
++	end
++	return result
++end
++
++function CombatService.Init()
++	DataService.OnProfileReleasing(function(player)
++		clicks[player], requests[player] = nil, nil
++	end)
++	Remotes.Event("ClickAttack").OnServerEvent:Connect(function(player, enemyId)
++		if bump(requests, player) > GameConfig.Click.MaxRequestsPerSecond then return end -- spam: buang tanpa balasan
++		local result, reason = CombatService.HandleClick(player, enemyId)
++		Remotes.Event("HitResult"):FireClient(player, result or { Error = reason })
++	end)
++	Remotes.Event("HitResult") -- pastikan ada sebelum client menunggu
++end
++
++return CombatService
 diff -ruN a/AnimeReverie/ServerScriptService/Services/DataMigrations.lua b/AnimeReverie/ServerScriptService/Services/DataMigrations.lua
 --- a/AnimeReverie/ServerScriptService/Services/DataMigrations.lua	1970-01-01 00:00:00.000000000 +0000
-+++ b/AnimeReverie/ServerScriptService/Services/DataMigrations.lua	2026-10-24 03:42:43.081953774 +0000
++++ b/AnimeReverie/ServerScriptService/Services/DataMigrations.lua	2026-10-24 16:32:26.373252654 +0000
 @@ -0,0 +1,20 @@
 +--!nonstrict
 +--[[
@@ -654,8 +788,8 @@ diff -ruN a/AnimeReverie/ServerScriptService/Services/DataMigrations.lua b/Anime
 +	end,
 +}
 diff -ruN a/AnimeReverie/ServerScriptService/Services/DataService.lua b/AnimeReverie/ServerScriptService/Services/DataService.lua
---- a/AnimeReverie/ServerScriptService/Services/DataService.lua	2026-10-24 03:42:43.073479676 +0000
-+++ b/AnimeReverie/ServerScriptService/Services/DataService.lua	2026-10-24 03:42:43.082361400 +0000
+--- a/AnimeReverie/ServerScriptService/Services/DataService.lua	2026-10-24 16:32:26.367000229 +0000
++++ b/AnimeReverie/ServerScriptService/Services/DataService.lua	2026-10-24 16:32:26.373468277 +0000
 @@ -17,6 +17,7 @@
  local GameConfig = require(ReplicatedStorage.Configurations.GameConfig)
  local ProfileStore = require(script.Parent.ProfileStore)
@@ -764,8 +898,8 @@ diff -ruN a/AnimeReverie/ServerScriptService/Services/DataService.lua b/AnimeRev
  		LoadAttempts = if isStudio then 2 else cfg.LoadAttempts, -- Studio: gagal cepat
  		LockRetryDelay = cfg.LockRetryDelay,
 diff -ruN a/AnimeReverie/ServerScriptService/Services/DataTemplate.lua b/AnimeReverie/ServerScriptService/Services/DataTemplate.lua
---- a/AnimeReverie/ServerScriptService/Services/DataTemplate.lua	2026-10-24 03:42:43.073624045 +0000
-+++ b/AnimeReverie/ServerScriptService/Services/DataTemplate.lua	2026-10-24 03:42:43.082809374 +0000
+--- a/AnimeReverie/ServerScriptService/Services/DataTemplate.lua	2026-10-24 16:32:26.367017128 +0000
++++ b/AnimeReverie/ServerScriptService/Services/DataTemplate.lua	2026-10-24 16:32:26.373666653 +0000
 @@ -26,6 +26,10 @@
  	-- Mata uang
  	Coins = Start.Coins,
@@ -778,9 +912,17 @@ diff -ruN a/AnimeReverie/ServerScriptService/Services/DataTemplate.lua b/AnimeRe
  	TotalKills = 0,
  	BossKills = 0,
 diff -ruN a/AnimeReverie/ServerScriptService/Services/PlayerStatsService.lua b/AnimeReverie/ServerScriptService/Services/PlayerStatsService.lua
---- a/AnimeReverie/ServerScriptService/Services/PlayerStatsService.lua	2026-10-24 03:42:43.073690040 +0000
-+++ b/AnimeReverie/ServerScriptService/Services/PlayerStatsService.lua	2026-10-24 03:42:43.083127979 +0000
-@@ -100,6 +100,8 @@
+--- a/AnimeReverie/ServerScriptService/Services/PlayerStatsService.lua	2026-10-24 16:32:26.367028680 +0000
++++ b/AnimeReverie/ServerScriptService/Services/PlayerStatsService.lua	2026-10-24 16:32:26.373957912 +0000
+@@ -17,6 +17,7 @@
+ 
+ local GameConfig = require(ReplicatedStorage.Configurations.GameConfig)
+ local StatFormulas = require(ReplicatedStorage.SharedModules.StatFormulas)
++local WorldConfig = require(ReplicatedStorage.Configurations.WorldConfig)
+ local DataService = require(script.Parent.DataService)
+ 
+ local PlayerStatsService = {}
+@@ -100,6 +101,8 @@
  		StatPoints = data.StatPoints,
  		Allocated = table.clone(data.Allocated),
  		Power = derived.Power,
@@ -789,10 +931,48 @@ diff -ruN a/AnimeReverie/ServerScriptService/Services/PlayerStatsService.lua b/A
  		BaseDamage = derived.BaseDamage,
  		BonusDamage = derived.BonusDamage,
  		TotalDamage = derived.TotalDamage,
-@@ -207,6 +209,26 @@
+@@ -207,6 +210,64 @@
  function PlayerStatsService.TrySpendGems(player, amount)
  	return changeCurrency(player, "Gems", amount, true)
  end
++-- EXP bonus (mis. reward quest). Level-up memicu callback seperti kill. Return: jumlah level naik ATAU nil, alasan.
++function PlayerStatsService.AddEXP(player, amount)
++	local data, state = DataService.GetData(player), runtime[player]
++	if not data or not state then return nil, "NoProfile" end
++	local oldLevel = data.Level
++	local levels = StatFormulas.ApplyEXP(data, amount)
++	state.Dirty = true
++	if levels > 0 then
++		state.DerivedDirty = true
++		local info = { OldLevel = oldLevel, NewLevel = data.Level, LevelsGained = levels, StatPointsAwarded = levels * GameConfig.EXP.StatPointsPerLevel }
++		for _, callback in levelUpCallbacks do task.spawn(callback, player, info) end
++	end
++	return levels
++end
++
++-- Syarat masuk world: Lobby (0) selalu boleh; world 1-5 butuh Level >= RequiredLevel (WorldConfig).
++function PlayerStatsService.CanEnterWorld(player, worldId)
++	local data = DataService.GetData(player)
++	local world = type(worldId) == "number" and WorldConfig.Get(worldId) or nil
++	if not data or not world then return false end
++	return worldId == 0 or data.Level >= world.RequiredLevel
++end
++
++-- Ganti world SAAT INI (hanya data; teleport fisik = WorldService, belum ada). Syarat: CanEnterWorld (level).
++-- HighestWorldUnlocked = world tertinggi yang pernah dimasuki (catatan progres). Return: ok, alasan
++function PlayerStatsService.SetCurrentWorld(player, worldId: any)
++	local data, state = DataService.GetData(player), runtime[player]
++	if not data or not state then return false, "NoProfile" end
++	if type(worldId) ~= "number" or worldId ~= math.floor(worldId) then return false, "InvalidWorld" end
++	local world = WorldConfig.Get(worldId)
++	if not world then return false, "InvalidWorld" end
++	if worldId > 0 and data.Level < world.RequiredLevel then return false, "WorldLocked" end
++	data.CurrentWorld = worldId
++	data.HighestWorldUnlocked = math.max(data.HighestWorldUnlocked, worldId)
++	state.Dirty = true
++	return true
++end
++
 +function PlayerStatsService.AddStars(player, amount)
 +	return changeCurrency(player, "Stars", amount, false)
 +end
@@ -816,7 +996,7 @@ diff -ruN a/AnimeReverie/ServerScriptService/Services/PlayerStatsService.lua b/A
  
  -- ===== internal =====
  
-@@ -224,19 +246,21 @@
+@@ -224,19 +285,22 @@
  		EXP = make("StringValue", "EXP"),
  		Kills = make("IntValue", "Kills"),
  		Coins = make("IntValue", "Coins"),
@@ -836,11 +1016,12 @@ diff -ruN a/AnimeReverie/ServerScriptService/Services/PlayerStatsService.lua b/A
  local function onProfileLoaded(player, profile)
  	StatFormulas.SanitizeData(profile.Data)
 -	local state = { DerivedDirty = true, Dirty = true, PlaytimeMark = os.clock() }
++	profile.Data.CurrentWorld = 0 -- pemain selalu mulai di Lobby
 +	local state = { DerivedDirty = true, Dirty = true, PlaytimeMark = os.time() }
  	runtime[player] = state
  	createLeaderstats(player, state)
  	PlayerStatsService.GetDerived(player)
-@@ -264,6 +288,8 @@
+@@ -264,6 +328,8 @@
  				ls.EXP.Value = ("%d/%d"):format(data.CurrentEXP, StatFormulas.RequiredEXP(data.Level))
  				ls.Kills.Value = data.TotalKills
  				ls.Coins.Value = data.Coins
@@ -849,9 +1030,90 @@ diff -ruN a/AnimeReverie/ServerScriptService/Services/PlayerStatsService.lua b/A
  				for _, callback in statsChangedCallbacks do
  					task.spawn(callback, player)
  				end
+diff -ruN a/AnimeReverie/ServerScriptService/Services/QuestService.lua b/AnimeReverie/ServerScriptService/Services/QuestService.lua
+--- a/AnimeReverie/ServerScriptService/Services/QuestService.lua	1970-01-01 00:00:00.000000000 +0000
++++ b/AnimeReverie/ServerScriptService/Services/QuestService.lua	2026-10-24 16:32:26.374692201 +0000
+@@ -0,0 +1,45 @@
++--!nonstrict
++--[[
++	QuestService | ModuleScript | ServerScriptService > Services > QuestService
++	Klaim reward quest kill (Stars + EXP) -- tepat sekali per quest (QuestLogic.Claim). Progres quest dihitung
++	CombatService saat kill. Remote: "ClaimQuest"(questId: string) -> "QuestResult" { Ok, Reward | Reason }.
++]]
++local ReplicatedStorage = game:GetService("ReplicatedStorage")
++local QuestConfig = require(ReplicatedStorage.Configurations.QuestConfig)
++local QuestLogic = require(ReplicatedStorage.SharedModules.QuestLogic)
++local DataService = require(script.Parent.DataService)
++local PlayerStatsService = require(script.Parent.PlayerStatsService)
++local Remotes = require(script.Parent.Remotes)
++
++local QuestService = {}
++local byId = {}
++for _, quest in QuestConfig.List do byId[quest.Id] = quest end
++
++-- Return: true, reward ATAU false, alasan ("NoProfile" | "InvalidQuest" | "NotCompleted" | "AlreadyClaimed")
++function QuestService.Claim(player, questId)
++	local data = DataService.GetData(player)
++	if not data then return false, "NoProfile" end
++	local quest = type(questId) == "string" and byId[questId] or nil
++	if not quest then return false, "InvalidQuest" end
++	local ok, reward = QuestLogic.Claim(data.Quests, quest)
++	if not ok then return false, reward end
++	PlayerStatsService.AddStars(player, reward.Stars)
++	PlayerStatsService.AddEXP(player, reward.EXP)
++	return true, reward
++end
++
++function QuestService.GetSummary(player, questId)
++	local data, quest = DataService.GetData(player), byId[questId]
++	if not data or not quest then return nil end
++	return QuestLogic.Summary(data.Quests, quest)
++end
++
++function QuestService.Init()
++	Remotes.Event("ClaimQuest").OnServerEvent:Connect(function(player, questId)
++		local ok, result = QuestService.Claim(player, questId)
++		Remotes.Event("QuestResult"):FireClient(player, ok and { Ok = true, Reward = result } or { Ok = false, Reason = result })
++	end)
++	Remotes.Event("QuestResult")
++end
++
++return QuestService
+diff -ruN a/AnimeReverie/ServerScriptService/Services/Remotes.lua b/AnimeReverie/ServerScriptService/Services/Remotes.lua
+--- a/AnimeReverie/ServerScriptService/Services/Remotes.lua	1970-01-01 00:00:00.000000000 +0000
++++ b/AnimeReverie/ServerScriptService/Services/Remotes.lua	2026-10-24 16:32:26.374979394 +0000
+@@ -0,0 +1,28 @@
++--!nonstrict
++--[[
++	Remotes | ModuleScript (server) | ServerScriptService > Services > Remotes
++	Membuat RemoteEvent di ReplicatedStorage > Remotes secara lazy. Client memakai WaitForChild("Remotes"):WaitForChild(nama).
++	Aturan: payload dari client TIDAK dipercaya; handler wajib memvalidasi tipe dan nilai.
++]]
++local ReplicatedStorage = game:GetService("ReplicatedStorage")
++
++local Remotes = {}
++local folder
++local cache = {}
++
++function Remotes.Event(name)
++	if not cache[name] then
++		if not folder then
++			folder = Instance.new("Folder")
++			folder.Name = "Remotes"
++			folder.Parent = ReplicatedStorage
++		end
++		local event = Instance.new("RemoteEvent")
++		event.Name = name
++		event.Parent = folder
++		cache[name] = event
++	end
++	return cache[name]
++end
++
++return Remotes
 diff -ruN a/AnimeReverie/tests/check_structure.py b/AnimeReverie/tests/check_structure.py
 --- a/AnimeReverie/tests/check_structure.py	1970-01-01 00:00:00.000000000 +0000
-+++ b/AnimeReverie/tests/check_structure.py	2026-10-24 03:42:43.084212832 +0000
++++ b/AnimeReverie/tests/check_structure.py	2026-10-24 16:32:26.375442181 +0000
 @@ -0,0 +1,127 @@
 +#!/usr/bin/env python3
 +"""Cek konsistensi struktur proyek Roblox TANPA Studio:  python3 tests/check_structure.py
@@ -982,8 +1244,8 @@ diff -ruN a/AnimeReverie/tests/check_structure.py b/AnimeReverie/tests/check_str
 +sys.exit(1 if problems else 0)
 diff -ruN a/AnimeReverie/tests/mock_roblox.lua b/AnimeReverie/tests/mock_roblox.lua
 --- a/AnimeReverie/tests/mock_roblox.lua	1970-01-01 00:00:00.000000000 +0000
-+++ b/AnimeReverie/tests/mock_roblox.lua	2026-10-24 03:42:43.084632542 +0000
-@@ -0,0 +1,202 @@
++++ b/AnimeReverie/tests/mock_roblox.lua	2026-10-24 16:32:26.375787501 +0000
+@@ -0,0 +1,219 @@
 +-- tests/mock_roblox.lua  (disisipkan oleh run_tests.py di dalam fungsi; `__sources` disediakan runner)
 +-- Roblox PALSU minimal + penjadwal virtual (task.spawn/wait/delay) supaya DataService & PlayerStatsService
 +-- bisa dijalankan di Luau CLI. Ini BUKAN Roblox: hanya memverifikasi ALUR logika kode kita (urutan, penantian,
@@ -1108,7 +1370,7 @@ diff -ruN a/AnimeReverie/tests/mock_roblox.lua b/AnimeReverie/tests/mock_roblox.
 +-- Satu "server" = kumpulan instance modul baru + game/Players/os palsu sendiri (JobId berbeda).
 +function H.newServer(jobId, store, opts)
 +	opts = opts or {}
-+	local server = { Warnings = {}, CloseCallbacks = {}, Instances = {} }
++	local server = { Warnings = {}, CloseCallbacks = {}, Instances = {}, Fired = {} }
 +	local task = newTask()
 +	local osMock = {
 +		time = function() return BASE_TIME + math.floor(Sched.now) end,
@@ -1149,6 +1411,17 @@ diff -ruN a/AnimeReverie/tests/mock_roblox.lua b/AnimeReverie/tests/mock_roblox.
 +		while remaining > 0 do task.wait(0.05) end
 +	end
 +
++	-- Meniru client menembak RemoteEvent ke server. Return true bila RemoteEvent-nya ada.
++	function server:ClientFire(player, name, ...)
++		for _, inst in self.Instances do
++			if inst.ClassName == "RemoteEvent" and inst.Name == name then
++				inst.OnServerEvent:Fire(player, ...)
++				return true
++			end
++		end
++		return false
++	end
++
 +	local services = {
 +		Players = Players,
 +		DataStoreService = { GetDataStore = function(_, _name) return store end },
@@ -1167,6 +1440,12 @@ diff -ruN a/AnimeReverie/tests/mock_roblox.lua b/AnimeReverie/tests/mock_roblox.
 +	local Instance = {
 +		new = function(className)
 +			local inst = { ClassName = className, Name = className }
++			if className == "RemoteEvent" then
++				inst.OnServerEvent = newSignal(task)
++				function inst:FireClient(player, ...)
++					table.insert(server.Fired, { Remote = self.Name, Player = player, Args = table.pack(...) })
++				end
++			end
 +			table.insert(server.Instances, inst)
 +			return inst
 +		end,
@@ -1187,9 +1466,9 @@ diff -ruN a/AnimeReverie/tests/mock_roblox.lua b/AnimeReverie/tests/mock_roblox.
 +
 +return H
 diff -ruN a/AnimeReverie/tests/run_tests.py b/AnimeReverie/tests/run_tests.py
---- a/AnimeReverie/tests/run_tests.py	2026-10-24 03:42:43.075665567 +0000
-+++ b/AnimeReverie/tests/run_tests.py	2026-10-24 03:42:43.084924570 +0000
-@@ -1,31 +1,59 @@
+--- a/AnimeReverie/tests/run_tests.py	2026-10-24 16:32:26.367098795 +0000
++++ b/AnimeReverie/tests/run_tests.py	2026-10-24 16:32:26.375930337 +0000
+@@ -1,31 +1,62 @@
  #!/usr/bin/env python3
 -"""Jalankan unit test (rumus + logika data) memakai Luau CLI standalone -- BUKAN di Roblox Studio.
 -Pakai: LUAU_BIN=/path/ke/luau python3 tests/run_tests.py   (default: 'luau' di PATH)
@@ -1226,8 +1505,11 @@ diff -ruN a/AnimeReverie/tests/run_tests.py b/AnimeReverie/tests/run_tests.py
 +    "GachaConfig": "ReplicatedStorage/Configurations/GachaConfig.lua",
 +    "QuestLogic": "ReplicatedStorage/SharedModules/QuestLogic.lua",
 +    "GachaLogic": "ReplicatedStorage/SharedModules/GachaLogic.lua",
++    "Remotes": "ServerScriptService/Services/Remotes.lua",
++    "CombatService": "ServerScriptService/Services/CombatService.lua",
++    "QuestService": "ServerScriptService/Services/QuestService.lua",
  }
-+TEST_FILES = ["test_core.lua", "test_integration.lua", "test_gameplay.lua"]
++TEST_FILES = ["test_core.lua", "test_integration.lua", "test_gameplay.lua", "test_services.lua"]
  REQUIRE = re.compile(r"require\(\s*(?:\w+\.)*(\w+)\s*\)")
  
 -parts = [
@@ -1269,8 +1551,8 @@ diff -ruN a/AnimeReverie/tests/run_tests.py b/AnimeReverie/tests/run_tests.py
 +    print("lalu jalankan: LUAU_BIN=/path/ke/luau python3 tests/run_tests.py")
 +    sys.exit(127)
 diff -ruN a/AnimeReverie/tests/test_core.lua b/AnimeReverie/tests/test_core.lua
---- a/AnimeReverie/tests/test_core.lua	2026-10-24 03:42:43.075782597 +0000
-+++ b/AnimeReverie/tests/test_core.lua	2026-10-24 03:42:43.085211796 +0000
+--- a/AnimeReverie/tests/test_core.lua	2026-10-24 16:32:26.367113560 +0000
++++ b/AnimeReverie/tests/test_core.lua	2026-10-24 16:32:26.376109729 +0000
 @@ -38,7 +38,7 @@
  	return true
  end
@@ -1328,7 +1610,7 @@ diff -ruN a/AnimeReverie/tests/test_core.lua b/AnimeReverie/tests/test_core.lua
 +return passed, failed
 diff -ruN a/AnimeReverie/tests/test_gameplay.lua b/AnimeReverie/tests/test_gameplay.lua
 --- a/AnimeReverie/tests/test_gameplay.lua	1970-01-01 00:00:00.000000000 +0000
-+++ b/AnimeReverie/tests/test_gameplay.lua	2026-10-24 03:42:43.085564422 +0000
++++ b/AnimeReverie/tests/test_gameplay.lua	2026-10-24 16:32:26.376255299 +0000
 @@ -0,0 +1,199 @@
 +-- Tes gameplay revisi (config + logika murni). Dijalankan run_tests.py; `__req` dan `H` disediakan runner.
 +local GameConfig, StatFormulas = __req("GameConfig"), __req("StatFormulas")
@@ -1531,7 +1813,7 @@ diff -ruN a/AnimeReverie/tests/test_gameplay.lua b/AnimeReverie/tests/test_gamep
 +return passed, failed
 diff -ruN a/AnimeReverie/tests/test_integration.lua b/AnimeReverie/tests/test_integration.lua
 --- a/AnimeReverie/tests/test_integration.lua	1970-01-01 00:00:00.000000000 +0000
-+++ b/AnimeReverie/tests/test_integration.lua	2026-10-24 03:42:43.085882219 +0000
++++ b/AnimeReverie/tests/test_integration.lua	2026-10-24 16:32:26.376399900 +0000
 @@ -0,0 +1,252 @@
 +-- Tes integrasi (dijalankan run_tests.py; `__req` dan `H` disediakan runner). BUKAN untuk Roblox Studio.
 +-- Waktu di sini VIRTUAL (penjadwal palsu), jadi "25 detik" selesai seketika.
@@ -1782,6 +2064,208 @@ diff -ruN a/AnimeReverie/tests/test_integration.lua b/AnimeReverie/tests/test_in
 +	eq(A.Stats.GetStats(p).Coins, 0, "Stars tidak mengubah Coins"); eq(A.Stats.GetStats(p).Stars, 6)
 +	A:RemovePlayer(p); H.runFor(5)
 +	eq(store.data[KEY(1)].Data.Stars, 6)
++end)
++
++return passed, failed
+diff -ruN a/AnimeReverie/tests/test_services.lua b/AnimeReverie/tests/test_services.lua
+--- a/AnimeReverie/tests/test_services.lua	1970-01-01 00:00:00.000000000 +0000
++++ b/AnimeReverie/tests/test_services.lua	2026-10-24 16:32:26.376596317 +0000
+@@ -0,0 +1,198 @@
++-- Tes layanan gameplay (CombatService, QuestService, world, remote) di atas Roblox palsu. `__req` dan `H` dari runner.
++-- ATURAN YANG DIBUKTIKAN: Power hanya dari klik valid; kill tidak memberi Power; Power independen dari damage/HP/hidup-mati NPC.
++local GameConfig, E, Q = __req("GameConfig"), __req("EnemyConfig"), __req("QuestConfig")
++local passed, failed = 0, 0
++local function test(name, fn)
++	H.reset()
++	local ok, err = pcall(H.run, fn)
++	if ok and #H.Sched.errors > 0 then ok, err = false, "error di thread: " .. H.Sched.errors[1] end
++	if ok then passed += 1 else failed += 1; print("FAIL: " .. name .. " -> " .. tostring(err)) end
++end
++local function eq(actual, expected, label)
++	if actual ~= expected then error(("%s: expected %s, got %s"):format(label or "eq", tostring(expected), tostring(actual)), 2) end
++end
++local function KEY(id) return GameConfig.Data.KeyPrefix .. id end
++local BASE = GameConfig.Click.BasePowerPerClick
++
++local function boot(jobId, store, opts)
++	local s = H.newServer(jobId, store, opts)
++	s.Stats, s.Data, s.Combat, s.Quest = s.require("PlayerStatsService"), s.require("DataService"), s.require("CombatService"), s.require("QuestService")
++	s.Stats.Init(); s.Combat.Init(); s.Quest.Init(); s.Data.Start()
++	return s
++end
++local function join(server, userId, world)
++	local p = server:AddPlayer(userId)
++	H.runUntil(function() return server.Data.GetData(p) ~= nil end, 120)
++	H.runFor(0.5)
++	if world then assert(server.Stats.SetCurrentWorld(p, world), "SetCurrentWorld gagal") end
++	return p
++end
++local function click(A, p, id) return A.Combat.HandleClick(p, id) end
++local function killWith(A, p, id) -- klik sampai mati (<= 12 klik, dalam 1 detik); return hasil klik pembunuh
++	for _ = 1, 12 do
++		local r, why = click(A, p, id); assert(r, "klik ditolak: " .. tostring(why))
++		if r.Killed then return r end
++	end
++	error("musuh tidak mati dalam 12 klik")
++end
++local function snap(A, p)
++	local s = A.Stats.GetStats(p)
++	return { s.Power, s.Coins, s.Stars, s.TotalKills, s.TotalEXP, s.BossKills }
++end
++local function same(a, b, skipPower)
++	for i = (skipPower and 2 or 1), #a do eq(a[i], b[i], "snapshot[" .. i .. "]") end
++end
++
++test("klik valid memberi Power walau NPC hidup & damage tidak cukup membunuh", function()
++	local A = boot("JOB_A", H.newStore()); local p = join(A, 1, 1)
++	local r = click(A, p, "W1_Boss")
++	eq(r.PowerGained, BASE); eq(r.Killed, false); assert(r.Hp > 0 and r.Hp < r.MaxHp, "NPC terkena damage tapi hidup")
++	eq(A.Stats.GetStats(p).Power, BASE); eq(A.Stats.GetStats(p).TotalKills, 0)
++end)
++
++test("kill TIDAK menambah Power: Power = jumlah Power klik; AwardKill langsung tidak mengubah Power; AwardClick tanpa NPC", function()
++	local A = boot("JOB_A", H.newStore()); local p = join(A, 1, 1)
++	local sum, killed = 0, false
++	for _ = 1, 12 do
++		local r = click(A, p, "W1_E1"); sum += r.PowerGained
++		if r.Killed then killed = true; break end
++	end
++	assert(killed, "NPC harus mati"); eq(A.Stats.GetStats(p).Power, sum, "kill tidak boleh menambah Power")
++	local before = A.Stats.GetStats(p).Power
++	A.Stats.AwardKill(p, { Kind = "Normal" }); A.Stats.AwardKill(p, { Kind = "Boss", BossBonusEXP = 50 })
++	eq(A.Stats.GetStats(p).Power, before, "AwardKill tidak boleh mengubah Power")
++	local g = A.Stats.AwardClick(p); eq(g, BASE); eq(A.Stats.GetStats(p).Power, before + g, "AwardClick tidak butuh NPC/kill")
++end)
++
++test("klik valid pada NPC yang sudah mati TETAP memberi Power, tanpa damage/reward kill", function()
++	local A = boot("JOB_A", H.newStore()); local p = join(A, 1, 1)
++	killWith(A, p, "W1_E1")
++	local s0 = snap(A, p)
++	local r = click(A, p, "W1_E1")
++	assert(r, "klik valid pada NPC mati harus diterima (Power independen dari status hidup/mati)")
++	eq(r.TargetAlive, false); eq(r.Damage, 0); eq(r.Killed, false); eq(r.PowerGained, BASE)
++	local s1 = snap(A, p); eq(s1[1], s0[1] + BASE, "Power naik tepat 1 klik"); same(s0, s1, true)
++end)
++
++test("kill hanya memberi reward terkonfigurasi: normal = +1 EXP + koin; boss = bonus EXP + Stars + koin; tanpa Power tambahan", function()
++	local A = boot("JOB_A", H.newStore()); local p = join(A, 1, 1)
++	killWith(A, p, "W1_E1")
++	local s = A.Stats.GetStats(p); local e = E.Enemies.W1_E1
++	eq(s.TotalKills, 1); eq(s.TotalEXP, 1); eq(s.Coins, e.CoinReward); eq(s.Stars, 0); eq(s.BossKills, 0)
++	local p2 = join(A, 2, 1)
++	A.Data.GetData(p2).Power = 1e6; A.Stats.InvalidateDerived(p2)
++	local r = click(A, p2, "W1_Boss"); local b = E.Enemies.W1_Boss
++	eq(r.Killed, true); eq(r.Kill.BaseEXP, 0); eq(r.Kill.BossBonusEXP, b.BossBonusEXP)
++	local s2 = A.Stats.GetStats(p2)
++	eq(s2.Power, 1e6 + r.PowerGained, "boss kill tidak menambah Power"); eq(s2.Stars, b.StarsReward); eq(s2.TotalEXP, b.BossBonusEXP)
++	eq(s2.Coins, b.CoinReward); eq(s2.BossKills, 1)
++end)
++
++test("klik invalid / world salah / world terkunci / rate limit tidak menghasilkan reward ilegal", function()
++	local A = boot("JOB_A", H.newStore()); local p = join(A, 1, 1)
++	local s0 = snap(A, p)
++	for _, bad in { 123, {}, true, "NOPE", "", string.rep("x", 1000) } do
++		local r, why = click(A, p, bad); eq(r, nil); eq(why, "InvalidTarget")
++	end
++	eq((select(2, click(A, p, nil))), "InvalidTarget")
++	eq((select(2, click(A, p, "W2_E1"))), "WrongWorld")
++	A.Data.GetData(p).CurrentWorld = 2 -- simulasi exploit/data rusak: level 1 belum boleh world 2
++	eq((select(2, click(A, p, "W2_E1"))), "WorldLocked")
++	assert(A.Stats.SetCurrentWorld(p, 0)); eq((select(2, click(A, p, "W1_E1"))), "WrongWorld")
++	same(s0, snap(A, p))
++	assert(A.Stats.SetCurrentWorld(p, 1))
++	local max = GameConfig.Click.MaxClicksPerSecond
++	for i = 1, max do assert(click(A, p, "W1_Boss"), "klik " .. i) end
++	for _ = 1, 20 do eq((select(2, click(A, p, "W1_Boss"))), "RateLimited") end
++	eq(A.Stats.GetStats(p).Power, max * BASE, "klik di atas batas tidak memberi Power")
++	H.runFor(1.1); assert(click(A, p, "W1_Boss"), "boleh lagi setelah jeda")
++end)
++
++test("kill & respawn tidak memberi reward ganda", function()
++	local A = boot("JOB_A", H.newStore()); local p = join(A, 1, 1); local e = E.Enemies.W1_E1
++	killWith(A, p, "W1_E1")
++	local s1 = snap(A, p)
++	for i = 1, 3 do
++		H.runFor(1); local r = click(A, p, "W1_E1"); eq(r.TargetAlive, false, "masih mati " .. i)
++	end
++	local s2 = snap(A, p); eq(s2[1], s1[1] + 3 * BASE); same(s1, s2, true)
++	H.runFor(e.RespawnSeconds + 1)
++	same(s2, snap(A, p), false) -- respawn sendiri tidak memberi apa pun
++	killWith(A, p, "W1_E1")
++	local s3 = A.Stats.GetStats(p); eq(s3.TotalKills, 2); eq(s3.Coins, 2 * e.CoinReward); eq(s3.TotalEXP, 2)
++end)
++
++test("dua pemain: reward kill hanya untuk pemukul terakhir; pemain lain tetap dapat Power dari kliknya", function()
++	local A = boot("JOB_A", H.newStore()); local pA, pB = join(A, 1, 1), join(A, 2, 1)
++	A.Data.GetData(pA).Power = 1e6; A.Stats.InvalidateDerived(pA)
++	eq(click(A, pA, "W1_E2").Killed, true)
++	local r = click(A, pB, "W1_E2")
++	eq(r.TargetAlive, false); eq(r.PowerGained, BASE)
++	local sB = A.Stats.GetStats(pB); eq(sB.TotalKills, 0); eq(sB.Coins, 0); eq(sB.TotalEXP, 0); eq(sB.Power, BASE)
++	eq(A.Stats.GetStats(pA).TotalKills, 1)
++end)
++
++test("remote: payload sampah tidak error; spam dibatasi (respons & Power)", function()
++	local A = boot("JOB_A", H.newStore()); local p = join(A, 1, 1)
++	local maxReq = GameConfig.Click.MaxRequestsPerSecond or 30
++	for i = 1, 300 do A:ClientFire(p, "ClickAttack", i % 2 == 0 and {} or "NOPE") end
++	A:ClientFire(p, "ClickAttack"); A:ClientFire(p, "ClickAttack", "W1_E1", 1, 2, 3)
++	H.runFor(0.1)
++	assert(#A.Fired <= maxReq, "respons HitResult membanjir: " .. #A.Fired .. " (maks " .. maxReq .. ")")
++	H.runFor(1.1); A.Fired = {}
++	local before = A.Stats.GetStats(p).Power
++	for _ = 1, 300 do A:ClientFire(p, "ClickAttack", "W1_Boss") end
++	H.runFor(0.1)
++	local gained = A.Stats.GetStats(p).Power - before
++	assert(gained <= GameConfig.Click.MaxClicksPerSecond * BASE, "Power melewati rate limit: " .. gained)
++	assert(gained > 0, "klik valid lewat remote harus memberi Power")
++	assert(#A.Fired <= maxReq, "respons membanjir: " .. #A.Fired)
++	eq(A.Fired[1].Remote, "HitResult"); eq(A.Fired[1].Args[1].EnemyId, "W1_Boss")
++end)
++
++test("quest kill: progres hanya dari kill world sendiri; klaim lewat remote tepat sekali (Stars + EXP)", function()
++	local A = boot("JOB_A", H.newStore()); local p = join(A, 1, 1); local q = Q.ByWorld[1][1]
++	for i = 1, q.Goal do
++		local r = killWith(A, p, "W1_E1")
++		if i < q.Goal then eq(#r.QuestsCompleted, 0) else eq(r.QuestsCompleted[1], q.Id) end
++		H.runFor(6)
++	end
++	eq(A.Quest.GetSummary(p, "W2_Q1").Progress, 0, "quest world lain tidak ikut naik")
++	A:ClientFire(p, "ClaimQuest", q.Id); H.runFor(0.1)
++	local res = A.Fired[#A.Fired]; eq(res.Remote, "QuestResult"); eq(res.Args[1].Ok, true)
++	local s = A.Stats.GetStats(p); eq(s.Stars, q.Reward.Stars); eq(s.TotalEXP, q.Goal + q.Reward.EXP)
++	A:ClientFire(p, "ClaimQuest", q.Id); A:ClientFire(p, "ClaimQuest", "NOPE"); A:ClientFire(p, "ClaimQuest", {}); H.runFor(0.1)
++	eq(A.Stats.GetStats(p).Stars, q.Reward.Stars, "klaim ulang tidak menambah Stars")
++	eq(A.Fired[#A.Fired].Args[1].Ok, false)
++end)
++
++test("world: terbuka menurut level; Lobby selalu boleh; spawn di Lobby; CombatService menolak world terkunci", function()
++	local store = H.newStore(); local A = boot("JOB_A", store)
++	store.data[KEY(1)] = { SchemaVersion = 2, Data = { Level = 15, CurrentWorld = 3 } }
++	local p = join(A, 1)
++	eq(A.Stats.GetStats(p).CurrentWorld, 0, "spawn di Lobby")
++	local ok = A.Stats.SetCurrentWorld(p, 2); assert(ok, "level 15 memenuhi syarat World 2")
++	eq(A.Stats.GetStats(p).HighestWorldUnlocked, 2)
++	local ok3, why3 = A.Stats.SetCurrentWorld(p, 3); eq(ok3, false); eq(why3, "WorldLocked")
++	for _, bad in { 99, -1, 1.5, 0 / 0, math.huge, "1", {}, true } do eq((A.Stats.SetCurrentWorld(p, bad)), false) end
++	A.Data.GetData(p).CurrentWorld = 3
++	eq((select(2, click(A, p, "W3_E1"))), "WorldLocked")
++	assert(A.Stats.SetCurrentWorld(p, 0))
++	store.data[KEY(2)] = { SchemaVersion = 2, Data = { Level = 14 } }
++	local p2 = join(A, 2); eq((select(2, A.Stats.SetCurrentWorld(p2, 2))), "WorldLocked")
++end)
++
++test("persisten: Power/Stars/Quests tersimpan setelah leave & rejoin; klik setelah leave ditolak", function()
++	local store = H.newStore(); local A = boot("JOB_A", store); local p = join(A, 1, 1)
++	killWith(A, p, "W1_E1")
++	local s = A.Stats.GetStats(p)
++	A:RemovePlayer(p)
++	eq((select(2, click(A, p, "W1_E1"))), "NoProfile")
++	H.runFor(5)
++	local rec = store.data[KEY(1)].Data
++	eq(rec.Power, s.Power); eq(rec.Coins, s.Coins); eq(rec.Quests.W1_Q1.Progress, 1); eq(rec.Quests.W1_Q1.Status, "Active")
++	local B = boot("JOB_B", store); local p2 = join(B, 1)
++	eq(B.Stats.GetStats(p2).Power, s.Power); eq(B.Quest.GetSummary(p2, "W1_Q1").Progress, 1)
 +end)
 +
 +return passed, failed

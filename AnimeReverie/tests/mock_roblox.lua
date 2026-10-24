@@ -122,7 +122,7 @@ end
 -- Satu "server" = kumpulan instance modul baru + game/Players/os palsu sendiri (JobId berbeda).
 function H.newServer(jobId, store, opts)
 	opts = opts or {}
-	local server = { Warnings = {}, CloseCallbacks = {}, Instances = {} }
+	local server = { Warnings = {}, CloseCallbacks = {}, Instances = {}, Fired = {} }
 	local task = newTask()
 	local osMock = {
 		time = function() return BASE_TIME + math.floor(Sched.now) end,
@@ -163,6 +163,17 @@ function H.newServer(jobId, store, opts)
 		while remaining > 0 do task.wait(0.05) end
 	end
 
+	-- Meniru client menembak RemoteEvent ke server. Return true bila RemoteEvent-nya ada.
+	function server:ClientFire(player, name, ...)
+		for _, inst in self.Instances do
+			if inst.ClassName == "RemoteEvent" and inst.Name == name then
+				inst.OnServerEvent:Fire(player, ...)
+				return true
+			end
+		end
+		return false
+	end
+
 	local services = {
 		Players = Players,
 		DataStoreService = { GetDataStore = function(_, _name) return store end },
@@ -181,6 +192,12 @@ function H.newServer(jobId, store, opts)
 	local Instance = {
 		new = function(className)
 			local inst = { ClassName = className, Name = className }
+			if className == "RemoteEvent" then
+				inst.OnServerEvent = newSignal(task)
+				function inst:FireClient(player, ...)
+					table.insert(server.Fired, { Remote = self.Name, Player = player, Args = table.pack(...) })
+				end
+			end
 			table.insert(server.Instances, inst)
 			return inst
 		end,
